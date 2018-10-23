@@ -201,8 +201,8 @@ else
     fprintf('\nPlease select what you want to do with the selected participants:\n');
     fprintf('[1] - Data import and repairing of bad channels\n');
     fprintf('[2] - Preprocessing, filtering, re-referencing\n');
-    cprintf([0.3 0.3 0.3], '[3] - ICA decomposition (currently not available)\n');
-    cprintf([0.3 0.3 0.3], '[4] - ICA based data correction (currently not available)\n');
+    cprintf([0.5 0.5 0.5], '[3] - ICA decomposition (currently not available)\n');
+    cprintf([0.5 0.5 0.5], '[4] - ICA based data correction (currently not available)\n');
     fprintf('[5] - Automatic and manual artifact detection\n');
     fprintf('[6] - Power analysis (pWelch)\n');
     fprintf('[7] - Averaging over participants\n');

@@ -39,7 +39,7 @@ if isempty(part)                                                            % if
   event = [];                                                               % the associated markers cannot be loaded and displayed
 else                                                                        % else, load the stimulus markers 
   source = '/data/pt_01904/eegData/EEG_JOEI_rawData/';
-  filename = sprintf('JOEI_%02d.vhdr', dyad);
+  filename = sprintf('JOEI_%02d.vhdr', part);
   path = strcat(source, filename);
   event = ft_read_event(path);                                              % read stimulus markers
 end
