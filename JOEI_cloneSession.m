@@ -6,7 +6,7 @@ JOEI_init;
 
 cprintf([0,0.6,0], '<strong>------------------------------------------------</strong>\n');
 cprintf([0,0.6,0], '<strong>Joint attention object encoding in infants</strong>\n');
-cprintf([0,0.6,0], '<strong>Data processing status</strong>\n');
+cprintf([0,0.6,0], '<strong>Clone session script</strong>\n');
 cprintf([0,0.6,0], 'Copyright (C) 2018, Daniel Matthes, MPI CBS\n');
 cprintf([0,0.6,0], '<strong>------------------------------------------------</strong>\n');
 
@@ -36,8 +36,15 @@ if newPaths == true
   path = uigetdir(pwd, 'Select folder...');
   path = strcat(path, '/');
 end
-
 clear newPaths
+
+folderList = dir(path);
+folderList = struct2cell(folderList);
+folderList = folderList(1,3:end)';
+if ~strcmp(folderList{1}, '00_settings')
+  cprintf([1,0.5,0], '\nSelected path has no JOEI data!\n');
+  return;
+end
 
 % -------------------------------------------------------------------------
 % Session selection
@@ -64,7 +71,9 @@ for i=1:1:numOfFiles
   sessionNum(i) = sscanf(fileListCopy{i}, '%d.mat');
 end
 
-sessionNum = unique(sessionNum);
+sessionNum    = unique(sessionNum);
+newSessionNum = max(sessionNum) + 1;
+newSessionStr = sprintf('%03d', newSessionNum);
 y = sprintf('%d ', sessionNum);
 
 userList = cell(1, length(sessionNum));
@@ -94,6 +103,7 @@ while selection == false
   else
     if ismember(x, sessionNum)
       selection = true;
+      sessionNum = x;
       sessionStr = sprintf('%03d', x);
     else
       cprintf([1,0.5,0], 'Wrong input, session does not exist!\n');
@@ -103,50 +113,48 @@ end
 
 fprintf('\n');
 
-clear fileList numOfFiles sessionNum fileListCopy x y userList ...
-      match filePath cmdout attrib selection 
+clear fileList numOfFiles fileListCopy y userList match ...
+      filePath cmdout attrib
 
 % -------------------------------------------------------------------------
-% Determine and return session status
-% -------------------------------------------------------------------------  
-parts = {...
-          '[1]  - Data import and repairing of bad channels:', ...
-          '[2]  - Preprocessing, filtering, re-referencing:', ...
-          '[3]  - ICA decomposition:', ...
-          '[4]  - ICA based data correction:', ...
-          '[5]  - Automatic and manual artifact detection:', ...
-          '[6]  - Power analysis (pWelch):' ...
-};
-
-folders = {...
-            '01c_repaired', ...
-            '02_preproc', ...
-            '03_icacomp', ...
-            '04_icacor', ...
-            '05b_allart', ...
-            '06a_pwelch' ...
-};
-
-fprintf('<strong>Status of the data processing:</strong>\n');
-
-for i = 1:1:length(parts)
-  fprintf('\n%s\n', parts{i});
-  tmpPath = strcat(path, folders{i}, '/');
+% Clone session
+% -------------------------------------------------------------------------
+fprintf('<strong>Creating new session number %d...</strong>\n\n', newSessionNum);
+for i = 1:1:length(folderList)
+  folder = folderList{i};
+  fprintf('Cloning data in folder: %s...\n', folder);
   
-  fileList    = dir([tmpPath, ['JOEI_p*' sessionStr '.mat']]);
-  fileList    = struct2cell(fileList);
-  fileList    = fileList(1,:);
-  numOfFiles  = length(fileList);
-  numOfPart   = zeros(1, numOfFiles);
-  for j = 1:1:numOfFiles
-    numOfPart(j) = sscanf(fileList{j}, strcat('JOEI_p%d*', sessionStr, '.mat'));
+  tmpPath   = strcat(path, folder);
+  homePath  = fileparts(mfilename('fullpath'));
+  
+  fileList      = dir(tmpPath);
+  fileList      = struct2cell(fileList);
+  fileList      = fileList(1,~cell2mat(fileList(5,:)))';
+  fileList      = cellfun(@(x) strsplit(x, '.'), fileList, ...
+                          'UniformOutput', false);
+  fileList      = cat(1, fileList{:});
+  if ~isempty(fileList)
+    fileExt       = unique(fileList(:,2));
+    fileList      = fileList(:,1);
+    sessionFiles  = regexp(fileList, sessionStr);
+    sessionFiles  = cellfun(@(x) ~isempty(x), sessionFiles);
+    fileList      = fileList(sessionFiles);
+    fileList      = cellfun(@(x) strrep(x, sessionStr, ''), fileList, ...
+                    'UniformOutput',false);
+    cd(tmpPath);
+    for j = 1:1:length(fileList)
+      file = fileList{j};
+      copyfile( strcat(file, sessionStr, '.', fileExt{1}), ...
+                strcat(file, newSessionStr, '.', fileExt{1}) ); 
+    end
+    cd(homePath);
   end
-  
-  numOfPart = unique(numOfPart);
-  y = sprintf('%d ', numOfPart);
-  
-  fprintf('%s\n', y);
 end
 
-clear fileList folders parts numOfFiles numOfPart i j y tmpPath ...
-      path sessionStr
+fprintf('\n<strong>Cloning of session %d completed. Session %d created!</strong>\n', ...
+        sessionNum, newSessionNum);
+
+%% clear workspace
+clear folder folderList i j newSessionNum path selection sessionNum ...
+      tmpPath x sessionStr file fileExt fileList homePath sessionFiles ...
+      newSessionStr
