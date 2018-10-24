@@ -2,7 +2,7 @@
 if ~exist('sessionStr', 'var')
   cfg           = [];
   cfg.subFolder = '01a_raw/';
-  cfg.filename  = 'JOEI_d01_01a_raw';
+  cfg.filename  = 'JOEI_p01_01a_raw';
   sessionNum    = JOEI_getSessionNum( cfg );
   if sessionNum == 0
     sessionNum = 1;
@@ -110,7 +110,7 @@ for i = numOfPart
 
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '01a_raw/');
-  cfg.filename    = sprintf('JOEI_d%02d_01a_raw', i);
+  cfg.filename    = sprintf('JOEI_p%02d_01a_raw', i);
   cfg.sessionStr  = sessionStr;
 
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
@@ -131,7 +131,7 @@ for i = numOfPart
   
   cfg             = [];
   cfg.srcFolder   = strcat(desPath, '01a_raw/');
-  cfg.filename    = sprintf('JOEI_d%02d_01a_raw', i);
+  cfg.filename    = sprintf('JOEI_p%02d_01a_raw', i);
   cfg.sessionStr  = sessionStr;
     
   fprintf('Load raw data...\n');
@@ -148,7 +148,7 @@ for i = numOfPart
   % export the bad channels in a *.mat file
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '01b_badchan/');
-  cfg.filename    = sprintf('JOEI_d%02d_01b_badchan', i);
+  cfg.filename    = sprintf('JOEI_p%02d_01b_badchan', i);
   cfg.sessionStr  = sessionStr;
 
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
@@ -176,7 +176,7 @@ for i = numOfPart
   % export the bad channels in a *.mat file
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '01c_repaired/');
-  cfg.filename    = sprintf('JOEI_d%02d_01c_repaired', i);
+  cfg.filename    = sprintf('JOEI_p%02d_01c_repaired', i);
   cfg.sessionStr  = sessionStr;
 
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
@@ -196,4 +196,3 @@ writetable(T, settings_file);
 %% clear workspace
 clear file_path cfg sourceList numOfSources i T badChan prestim ...
       settings_file
-

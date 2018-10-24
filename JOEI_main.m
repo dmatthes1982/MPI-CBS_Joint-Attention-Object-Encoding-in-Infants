@@ -92,7 +92,7 @@ selection = false;
 
 tmpPath = strcat(desPath, '01a_raw/');
 
-sessionList     = dir([tmpPath, 'JOEI_d*_01a_raw_*.mat']);
+sessionList     = dir([tmpPath, 'JOEI_p*_01a_raw_*.mat']);
 sessionList     = struct2cell(sessionList);
 sessionList     = sessionList(1,:);
 numOfSessions   = length(sessionList);
@@ -262,32 +262,32 @@ switch part
   case 1
     fileNamePre = [];
     tmpPath = strcat(desPath, '01a_raw/');
-    fileNamePost = strcat(tmpPath, 'JOEI_d*_01a_raw_', sessionStr, '.mat');
+    fileNamePost = strcat(tmpPath, 'JOEI_p*_01a_raw_', sessionStr, '.mat');
   case 2
     tmpPath = strcat(desPath, '01c_repaired/');
-    fileNamePre = strcat(tmpPath, 'JOEI_d*_01c_repaired_', sessionStr, '.mat');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_01c_repaired_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '02_preproc/');
-    fileNamePost = strcat(tmpPath, 'JOEI_d*_02_preproc_', sessionStr, '.mat');
+    fileNamePost = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
   case 3
     tmpPath = strcat(desPath, '02_preproc/');
-    fileNamePre = strcat(tmpPath, 'JOEI_d*_02_preproc_', sessionStr, '.mat');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '03_icacomp/');
-    fileNamePost = strcat(tmpPath, 'JOEI_d*_03_icacomp_', sessionStr, '.mat');
+    fileNamePost = strcat(tmpPath, 'JOEI_p*_03_icacomp_', sessionStr, '.mat');
   case 4
     tmpPath = strcat(desPath, '03_icacomp/');
-    fileNamePre = strcat(tmpPath, 'JOEI_d*_03_icacomp_', sessionStr, '.mat');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_03_icacomp_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '04_icacor/');
-    fileNamePost = strcat(tmpPath, 'JOEI_d*_04_icacor_', sessionStr, '.mat');
+    fileNamePost = strcat(tmpPath, 'JOEI_p*_04_icacor_', sessionStr, '.mat');
   case 5
     tmpPath = strcat(desPath, '02_preproc/');
-    fileNamePre = strcat(tmpPath, 'JOEI_d*_02_preproc_', sessionStr, '.mat');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '05b_allart/');
-    fileNamePost = strcat(tmpPath, 'JOEI_d*_05b_allart_', sessionStr, '.mat');
+    fileNamePost = strcat(tmpPath, 'JOEI_p*_05b_allart_', sessionStr, '.mat');
   case 6
     tmpPath = strcat(desPath, '02_preproc/');
-    fileNamePre = strcat(tmpPath, 'JOEI_d*_02_preproc_', sessionStr, '.mat');
-    tmpPath = strcat(desPath, '09a_pwelch/');
-    fileNamePost = strcat(tmpPath, 'JOEI_d*_09a_pwelch_', sessionStr, '.mat');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '06a_pwelch/');
+    fileNamePost = strcat(tmpPath, 'JOEI_p*_06a_pwelch_', sessionStr, '.mat');
   case 7
     fileNamePre = 0;
   otherwise
@@ -314,7 +314,7 @@ if ~isequal(fileNamePre, 0)
       numOfFiles  = length(fileListPre);
       numOfPrePart = zeros(1, numOfFiles);
       for i=1:1:numOfFiles
-        numOfPrePart(i) = sscanf(fileListPre{i}, strcat('JOEI_d%d*', sessionStr, '.mat'));
+        numOfPrePart(i) = sscanf(fileListPre{i}, strcat('JOEI_p%d*', sessionStr, '.mat'));
       end
     end
   end
@@ -352,7 +352,7 @@ if ~isequal(fileNamePre, 0)
         numOfFiles  = length(fileListPost);
         numOfPostPart = zeros(1, numOfFiles);
         for i=1:1:numOfFiles
-          numOfPostPart(i) = sscanf(fileListPost{i}, strcat('JOEI_d%d*', sessionStr, '.mat'));
+          numOfPostPart(i) = sscanf(fileListPost{i}, strcat('JOEI_p%d*', sessionStr, '.mat'));
         end
       end
   

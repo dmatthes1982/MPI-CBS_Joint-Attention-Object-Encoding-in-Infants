@@ -2,7 +2,7 @@
 if ~exist('sessionStr', 'var')
   cfg           = [];
   cfg.subFolder = '01c_repaired/';
-  cfg.filename  = 'JOEI_d01_01c_repaired';
+  cfg.filename  = 'JOEI_p01_01c_repaired';
   sessionStr    = sprintf('%03d', JOEI_getSessionNum( cfg ));                % estimate current session number
 end
 
@@ -20,7 +20,7 @@ if ~exist('numOfPart', 'var')                                               % es
 
   for i=1:1:numOfSources
     numOfPart(i)  = sscanf(sourceList{i}, ...
-                    strcat('JOEI_d%d_01c_repaired_', sessionStr, '.mat'));
+                    strcat('JOEI_p%d_01c_repaired_', sessionStr, '.mat'));
   end
 end
 
@@ -99,7 +99,7 @@ writetable(T, file_path);
 for i = numOfPart
   cfg             = [];
   cfg.srcFolder   = strcat(desPath, '01c_repaired/');
-  cfg.filename    = sprintf('JOEI_d%02d_01c_repaired', i);
+  cfg.filename    = sprintf('JOEI_p%02d_01c_repaired', i);
   cfg.sessionStr  = sessionStr;
   
   fprintf('<strong>Participant %d</strong>\n', i);
@@ -119,7 +119,7 @@ for i = numOfPart
   
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '02_preproc/');
-  cfg.filename    = sprintf('JOEI_d%02d_02_preproc', i);
+  cfg.filename    = sprintf('JOEI_p%02d_02_preproc', i);
   cfg.sessionStr  = sessionStr;
   
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...

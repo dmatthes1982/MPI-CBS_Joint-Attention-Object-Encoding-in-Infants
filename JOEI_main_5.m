@@ -2,7 +2,7 @@
 if ~exist('sessionStr', 'var')
   cfg           = [];
   cfg.subFolder = '02_preproc/';
-  cfg.filename  = 'JOEI_d01_02_preproc';
+  cfg.filename  = 'JOEI_p01_02_preproc';
   sessionStr    = sprintf('%03d', JOEI_getSessionNum( cfg ));               % estimate current session number
 end
 
@@ -20,7 +20,7 @@ if ~exist('numOfPart', 'var')                                               % es
 
   for i=1:1:numOfSources
     numOfPart(i)  = sscanf(sourceList{i}, ...
-                    strcat('JOEI_d%d_02_preproc_', sessionStr, '.mat'));
+                    strcat('JOEI_p%d_02_preproc_', sessionStr, '.mat'));
   end
 end
 
@@ -149,11 +149,11 @@ writetable(T, file_path);
 for i = numOfPart
   cfg             = [];
   cfg.srcFolder   = strcat(desPath, '02_preproc/');
-  cfg.filename    = sprintf('JOEI_d%02d_02_preproc', i);
+  cfg.filename    = sprintf('JOEI_p%02d_02_preproc', i);
   cfg.sessionStr  = sessionStr;
   
-  fprintf('<strong>Participant %d</strong>\n\n', i);
-  fprintf('Load eye-artifact corrected data...\n\n');
+  fprintf('<strong>Participant %d</strong>\n', i);
+  fprintf('Load preprocessed data...\n\n');
   JOEI_loadData( cfg );
   
   % automatic artifact detection
@@ -184,7 +184,7 @@ for i = numOfPart
   % export the automatic selected artifacts into a *.mat file
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '05a_autoart/');
-  cfg.filename    = sprintf('JOEI_d%02d_05a_autoart', i);
+  cfg.filename    = sprintf('JOEI_p%02d_05a_autoart', i);
   cfg.sessionStr  = sessionStr;
 
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
@@ -199,7 +199,7 @@ for i = numOfPart
   % export the verified and the additional artifacts into a *.mat file
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '05b_allart/');
-  cfg.filename    = sprintf('JOEI_d%02d_05b_allart', i);
+  cfg.filename    = sprintf('JOEI_p%02d_05b_allart', i);
   cfg.sessionStr  = sessionStr;
 
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
