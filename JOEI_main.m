@@ -79,8 +79,8 @@ end
 if ~exist(strcat(desPath, '06a_pwelch'), 'dir')
   mkdir(strcat(desPath, '06a_pwelch'));
 end
-if ~exist(strcat(desPath, '07a_pwelchod'), 'dir')
-  mkdir(strcat(desPath, '07a_pwelchod'));
+if ~exist(strcat(desPath, '07a_pwelchop'), 'dir')
+  mkdir(strcat(desPath, '07a_pwelchop'));
 end
 
 clear sessionStr numOfPart part newPaths
