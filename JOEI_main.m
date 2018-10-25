@@ -55,11 +55,14 @@ end
 if ~exist(strcat(desPath, '01a_raw'), 'dir')
   mkdir(strcat(desPath, '01a_raw'));
 end
-if ~exist(strcat(desPath, '01b_badchan'), 'dir')
-  mkdir(strcat(desPath, '01b_badchan'));
+if ~exist(strcat(desPath, '01b_events'), 'dir')
+  mkdir(strcat(desPath, '01b_events'));
 end
-if ~exist(strcat(desPath, '01c_repaired'), 'dir')
-  mkdir(strcat(desPath, '01c_repaired'));
+if ~exist(strcat(desPath, '01c_badchan'), 'dir')
+  mkdir(strcat(desPath, '01c_badchan'));
+end
+if ~exist(strcat(desPath, '01d_repaired'), 'dir')
+  mkdir(strcat(desPath, '01d_repaired'));
 end
 if ~exist(strcat(desPath, '02_preproc'), 'dir')
   mkdir(strcat(desPath, '02_preproc'));
@@ -264,8 +267,8 @@ switch part
     tmpPath = strcat(desPath, '01a_raw/');
     fileNamePost = strcat(tmpPath, 'JOEI_p*_01a_raw_', sessionStr, '.mat');
   case 2
-    tmpPath = strcat(desPath, '01c_repaired/');
-    fileNamePre = strcat(tmpPath, 'JOEI_p*_01c_repaired_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '01d_repaired/');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_01d_repaired_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '02_preproc/');
     fileNamePost = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
   case 3

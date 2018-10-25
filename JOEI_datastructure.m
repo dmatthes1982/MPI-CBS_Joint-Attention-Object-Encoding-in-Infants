@@ -7,16 +7,17 @@
 %
 % data_raw (1x1 fieldtrip data structure)
 %
-% In every substep of the data processing pipeline (i.e. 01a_raw, 
-% 01b_badchan, 01c_repaired, 02_preproc, 03_icacomp ...) N single datasets
-% will be created. The number N stands for the current number of 
-% participants within the study. Every dataset for each participants is 
-% stored in a separate *.mat file, to avoid the need of swap memory during 
-% data  processing. The different conditions in a dataset are separated 
-% through trials and the field trialinfo contains the condition markers of
-% each trials. In case of subsegmented data the structure contains more
-% than one trial for each condition. The information about the order of the
-% trials of one condition is available through the relating time elements. 
+% In every substep of the data processing pipeline (i.e. 01a_raw,
+% 01b_events, 01c_badchan, 01d_repaired, 02_preproc, 03_icacomp ...) N
+% single datasets will be created. The number N stands for the current
+% number of participants within the study. Every dataset for each
+% participants is stored in a separate *.mat file, to avoid the need of
+% swap memory during data  processing. The different conditions in a
+% dataset are separated through trials and the field trialinfo contains
+% the condition markers of each trials. In case of subsegmented data the
+% structure contains more than one trial for each condition. The
+% information about the order of the trials of one condition is available
+% through the relating time elements.
 %
 % Many functions especially the plot functions need a declaration of the 
 % specific condition, which should be selected. The JOEI study is described
