@@ -1,9 +1,9 @@
-function [ data ] = JOEI_importDataset(cfg)
+function [ data, cfg_events ] = JOEI_importDataset(cfg)
 % JOEI_IMPORTDATASET imports one specific dataset recorded with a device 
 % from brain vision.
 %
 % Use as
-%   [ data ] = JOEI_importDataset(cfg)
+%   [ data, cfg_events ] = JOEI_importDataset(cfg)
 %
 % The configuration options are
 %   cfg.path          = source path (i.e. '/data/pt_01904/eegData/EEG_JOEI_rawData/')
@@ -16,6 +16,11 @@ function [ data ] = JOEI_importDataset(cfg)
 % absolute path specifications like in the example. Please be aware that 
 % you have to mask space signs of the path names under linux with a 
 % backslash char (i.e. '/home/user/test\ folder')
+%
+% The output of this function consists of two elements. The first one
+% contains the imported raw data. The second one holds different trl
+% definitions which are describing moments of mutual gaze, mutual object
+% look and infant object look within the different conditions.
 %
 % This function requires the fieldtrip toolbox.
 %
@@ -45,14 +50,31 @@ headerfile = sprintf('%sJOEI_%02d.vhdr', path, part);
 if strcmp(continuous, 'no')
   % -----------------------------------------------------------------------
   % Load general definitions
-  % -------------------------------------------------------------------------
+  % -----------------------------------------------------------------------
   filepath = fileparts(mfilename('fullpath'));
   load(sprintf('%s/../general/JOEI_generalDefinitions.mat', filepath), ...
      'generalDefinitions');
 
   % definition of all possible stimuli
   eventvalues   = generalDefinitions.condMark;
-                
+
+  % -----------------------------------------------------------------------
+  % Check, if mofication of marker file in interact was done properly
+  % -----------------------------------------------------------------------
+  event   = ft_read_event(headerfile);                                      % import all existing events from marker file
+  control = event(ismember({event(:).type}, 'Stimulus'));                   % extract the control marker
+  control = control(ismember({control(:).value}, 'control'));
+
+  response = event(ismember({event(:).type}, 'Response'));                  % extract the video recording triggers
+  response = response(ismember({response(:).value}, 'R128'));
+
+  if (control(1).sample == response(1).sample)
+    fprintf('Video start trigger and the control marker are matching.\n\n');
+  else
+    error(['Video start trigger and the control marker don''t match! '...
+            'Please check your Interact export settings.\n']);
+  end
+
   % -----------------------------------------------------------------------
   % Generate trial definition
   % -----------------------------------------------------------------------
@@ -111,5 +133,45 @@ data.label = strrep(data.label(1:26), '_1', '');                            % ex
 for i=1:1:length(data.trial)
   data.trial{i} = data.trial{i}(1:26,:);
 end
+
+% -------------------------------------------------------------------------
+% Extract trial definitions for the following events:
+% infant object look, mutual gaze, mutual object look
+% -------------------------------------------------------------------------
+marker  = event(ismember({event(:).type}, 'gaze_inf'));                     % infant object look
+object  = marker(ismember({marker(:).value}, 'object'));
+
+ganze_inf.object.trl(:,1) = [object(:).sample];
+ganze_inf.object.trl(:,2) = [object(:).sample] + [object(:).duration] - 1;
+offset = {object(:).offset};
+idx = cellfun(@isempty, offset);
+offset(idx) = {0};
+ganze_inf.object.trl(:,3) = cell2mat(offset);
+
+marker  = event(ismember({event(:).type}, 'analysis_gaze'));                % mutual gaze
+mgaze   = marker(ismember({marker(:).value}, 'MutualGaze'));
+
+analysis_gaze.MutualGaze.trl(:,1) = [mgaze(:).sample];
+analysis_gaze.MutualGaze.trl(:,2) = [mgaze(:).sample] + ...
+                                    [mgaze(:).duration] - 1;
+offset = {mgaze(:).offset};
+idx = cellfun(@isempty, offset);
+offset(idx) = {0};
+analysis_gaze.MutualGaze.trl(:,3) = cell2mat(offset);
+
+marker  = event(ismember({event(:).type}, 'analysis_gaze'));                % mutual object look
+mobject = marker(ismember({marker(:).value}, 'MutualObject'));
+
+analysis_gaze.MutualObject.trl(:,1) = [mobject(:).sample];
+analysis_gaze.MutualObject.trl(:,2) = [mobject(:).sample] + ...
+                                    [mobject(:).duration] - 1;
+offset = {mobject(:).offset};
+idx = cellfun(@isempty, offset);
+offset(idx) = {0};
+analysis_gaze.MutualObject.trl(:,3) = cell2mat(offset);
+
+cfg_events = [];
+cfg_events.ganze_inf      = ganze_inf;
+cfg_events.analysis_gaze  = analysis_gaze;
 
 end

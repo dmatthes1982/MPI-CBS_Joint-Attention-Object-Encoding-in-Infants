@@ -105,9 +105,10 @@ for i = numOfPart
   
   fprintf('<strong>Import data of participant %d</strong> from: %s ...\n', i, cfg.path);
   ft_info off;
-  data_raw = JOEI_importDataset( cfg );
+  [data_raw, cfg_events] = JOEI_importDataset( cfg );
   ft_info on;
 
+  % export the raw data in a *.mat file
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '01a_raw/');
   cfg.filename    = sprintf('JOEI_p%02d_01a_raw', i);
@@ -115,12 +116,27 @@ for i = numOfPart
 
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
                      '.mat');
-  
-  fprintf('The RAW data of participant %d will be saved in:\n', i); 
+
+  fprintf('The RAW data of participant %d will be saved in:\n', i);
   fprintf('%s ...\n', file_path);
   JOEI_saveData(cfg, 'data_raw', data_raw);
-  fprintf('Data stored!\n\n');
+  fprintf('Data stored!\n');
   clear data_raw
+
+  % export the look events in a *.mat file
+  cfg             = [];
+  cfg.desFolder   = strcat(desPath, '01b_events/');
+  cfg.filename    = sprintf('JOEI_p%02d_01b_events', i);
+  cfg.sessionStr  = sessionStr;
+
+  file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
+                     '.mat');
+
+  fprintf('The look events of participant %d will be saved in:\n', i);
+  fprintf('%s ...\n', file_path);
+  JOEI_saveData(cfg, 'cfg_events', cfg_events);
+  fprintf('Data stored!\n\n');
+  clear cfg_events
 end
 
 fprintf('<strong>Repairing of corrupted channels</strong>\n\n');
