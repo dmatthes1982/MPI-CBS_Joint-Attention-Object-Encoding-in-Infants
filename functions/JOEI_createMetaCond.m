@@ -36,7 +36,7 @@ switch event
   case 'mGaze'
     trl = eventSpec.analysis_gaze.MutualGaze.trl;
     markerOffset = 400;
-  case 'mObject'
+  case 'mObj'
     trl = eventSpec.analysis_gaze.MutualObject.trl;
     markerOffset = 500;
 end
@@ -44,12 +44,19 @@ end
 % -------------------------------------------------------------------------
 % Create data subset
 % -------------------------------------------------------------------------
-cfg     = [];
-cfg.trl = trl;
+cfg               = [];
+cfg.trl           = trl;
+cfg.showcallinfo  = 'no';
+
+ft_info off;
+ft_warning off;
 
 fprintf(['Create data of meta conditions which are related to the '...
-          'event: %s...\n'], event);
-data = ft_definetrial(cfg, data);
+          'event %s...\n'], event);
+data = ft_redefinetrial(cfg, data);
 data.trialinfo = data.trialinfo + markerOffset;
+
+ft_info on;
+ft_warning on;
 
 end

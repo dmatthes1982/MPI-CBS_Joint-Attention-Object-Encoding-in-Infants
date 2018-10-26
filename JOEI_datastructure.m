@@ -35,7 +35,7 @@
 % - JA2Obj2           - 16
 % - NoJA1Obj1         - 21
 % - NoJA1Obj2         - 22
-% - NoJA1Obj2         - 23         
+% - NoJA1Obj2         - 23
 % - NoJA2Obj1         - 24
 % - NoJA2Obj2         - 25
 % - NoJA2Obj2         - 26
@@ -63,6 +63,49 @@
 % - NoJA2Obj2Tab2     - 252
 % - NoJA2Obj3Tab1     - 253
 % - NoJA2Obj3Tab2     - 254
+%
+% Furthermore there are existing so-called Meta Conditions. These
+% conditions including only a subset of the original conditions and they
+% are described trough the occurrence of a certain event (i.e. infant
+% object look, mutual gaze, mutual object look). The relating numbers and
+% names are:
+%
+% - JA1Obj1-infObj    - 311
+% - JA1Obj2-infObj    - 312
+% - JA1Obj3-infObj    - 313
+% - JA2Obj1-infObj    - 314
+% - JA2Obj2-infObj    - 315
+% - JA2Obj2-infObj    - 316
+% - NoJA1Obj1-infObj  - 321
+% - NoJA1Obj2-infObj  - 322
+% - NoJA1Obj2-infObj  - 323
+% - NoJA2Obj1-infObj  - 324
+% - NoJA2Obj2-infObj  - 325
+% - NoJA2Obj2-infObj  - 326
+% - JA1Obj1-mGaze     - 411
+% - JA1Obj2-mGaze     - 412
+% - JA1Obj3-mGaze     - 413
+% - JA2Obj1-mGaze     - 414
+% - JA2Obj2-mGaze     - 415
+% - JA2Obj2-mGaze     - 416
+% - NoJA1Obj1-mGaze   - 421
+% - NoJA1Obj2-mGaze   - 422
+% - NoJA1Obj2-mGaze   - 423
+% - NoJA2Obj1-mGaze   - 424
+% - NoJA2Obj2-mGaze   - 425
+% - NoJA2Obj2-mGaze   - 426
+% - JA1Obj1-mObj      - 511
+% - JA1Obj2-mObj      - 512
+% - JA1Obj3-mObj      - 513
+% - JA2Obj1-mObj      - 514
+% - JA2Obj2-mObj      - 515
+% - JA2Obj2-mObj      - 516
+% - NoJA1Obj1-mObj    - 521
+% - NoJA1Obj2-mObj    - 522
+% - NoJA1Obj2-mObj    - 523
+% - NoJA2Obj1-mObj    - 524
+% - NoJA2Obj2-mObj    - 525
+% - NoJA2Obj2-mObj    - 526
 %
 % The declaration of the condition is done by setting the cfg.condition
 % option with the string or the number of the specific condition.

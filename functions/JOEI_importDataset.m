@@ -141,12 +141,12 @@ end
 marker  = event(ismember({event(:).type}, 'gaze_inf'));                     % infant object look
 object  = marker(ismember({marker(:).value}, 'object'));
 
-ganze_inf.object.trl(:,1) = [object(:).sample];
-ganze_inf.object.trl(:,2) = [object(:).sample] + [object(:).duration] - 1;
+gaze_inf.object.trl(:,1) = [object(:).sample];
+gaze_inf.object.trl(:,2) = [object(:).sample] + [object(:).duration] - 1;
 offset = {object(:).offset};
 idx = cellfun(@isempty, offset);
 offset(idx) = {0};
-ganze_inf.object.trl(:,3) = cell2mat(offset);
+gaze_inf.object.trl(:,3) = cell2mat(offset);
 
 marker  = event(ismember({event(:).type}, 'analysis_gaze'));                % mutual gaze
 mgaze   = marker(ismember({marker(:).value}, 'MutualGaze'));
@@ -171,7 +171,7 @@ offset(idx) = {0};
 analysis_gaze.MutualObject.trl(:,3) = cell2mat(offset);
 
 cfg_events = [];
-cfg_events.ganze_inf      = ganze_inf;
+cfg_events.gaze_inf       = gaze_inf;
 cfg_events.analysis_gaze  = analysis_gaze;
 
 end

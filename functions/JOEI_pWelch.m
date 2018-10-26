@@ -58,14 +58,15 @@ filepath = fileparts(mfilename('fullpath'));
 load(sprintf('%s/../general/JOEI_generalDefinitions.mat', filepath), ...
      'generalDefinitions');  
 
-val       = ismember(generalDefinitions.condNum, data_psd.trialinfo);
-trialinfo = generalDefinitions.condNum(val)';
+cond      = [generalDefinitions.condNum generalDefinitions.metaCondNum];
+val       = ismember(cond, data_psd.trialinfo);
+trialinfo = cond(val)';
 powspctrm = zeros(length(trialinfo), length(data_psd.label), length(data_psd.freq));
 
 for i = 1:1:length(trialinfo)
   val       = ismember(data_psd.trialinfo, trialinfo(i));
   tmpspctrm = data_psd.powspctrm(val,:,:);
-  powspctrm(i,:,:) = median(tmpspctrm, 1);
+  powspctrm(i,:,:) = nanmedian(tmpspctrm, 1);
 end
 
 data_pWelch.label = data_psd.label;

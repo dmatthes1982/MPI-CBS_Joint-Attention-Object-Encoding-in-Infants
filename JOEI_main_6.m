@@ -84,7 +84,7 @@ if pwelch == true
   writetable(T, file_path);
   
   for i = numOfPart
-    fprintf('<strong>Participant %d</strong>\n', i);
+    fprintf('<strong>Participant %d</strong>\n\n', i);
     
     % Load preprocessed data
     cfg             = [];
@@ -92,9 +92,45 @@ if pwelch == true
     cfg.filename    = sprintf('JOEI_p%02d_02_preproc', i);
     cfg.sessionStr  = sessionStr;
 
-    fprintf('Load preprocessed data...\n\n');
+    fprintf('Load preprocessed data...\n');
     JOEI_loadData( cfg );
-    
+
+    % Load look event specifications
+    cfg             = [];
+    cfg.srcFolder   = strcat(desPath, '01b_events/');
+    cfg.filename    = sprintf('JOEI_p%02d_01b_events', i);
+    cfg.sessionStr  = sessionStr;
+
+    fprintf('Load look event specifications...\n\n');
+    JOEI_loadData( cfg );
+
+    % Create meta conditions
+    cfg           = [];
+    cfg.event     = 'infObj';
+    cfg.eventSpec = cfg_events;
+
+    data_infObj   = JOEI_createMetaCond(cfg, data_preproc);
+
+    cfg.event     = 'mGaze';
+
+    data_mGaze    = JOEI_createMetaCond(cfg, data_preproc);
+
+    cfg.event     = 'mObj';
+
+    data_mObj     = JOEI_createMetaCond(cfg, data_preproc);
+
+    % Unify datasets
+    cfg = [];
+    cfg.showcallinfo = 'no';
+
+    ft_info off;
+    fprintf('Append the meta condition datasets to the initial dataset...\n\n');
+    data_preproc  = ft_appenddata(cfg, data_preproc, data_infObj, ...
+                                        data_mGaze, data_mObj);
+    ft_info on;
+
+    clear data_infObj data_mGaze data_mObj cfg_events
+
     % Segmentation of conditions in segments of one second with 75 percent
     % overlapping
     cfg          = [];
