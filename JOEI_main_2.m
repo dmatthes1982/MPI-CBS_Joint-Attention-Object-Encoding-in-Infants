@@ -77,6 +77,63 @@ while selection == false
 end
 fprintf('\n');
 
+selection = false;
+while selection == false
+  cprintf([0,0.6,0], 'Do want to use the default bandpass (1...48 Hz) for preprocessing?\n');
+  x = input('Select [y/n]: ','s');
+  if strcmp('y', x)
+    selection = true;
+    bpRange = [1 48];
+    bandpass = {'[1 48]'};
+  elseif strcmp('n', x)
+    selection = true;
+    bpRange = [];
+  else
+    selection = false;
+  end
+end
+
+if isempty(bpRange)
+  selection = false;
+  while selection == false
+    cprintf([0,0.6,0], '\nDefine your specific preprocessing bandpass.\n');
+    cprintf([0,0.6,0], 'Put lower and upper cutoff frequencies in squared brackets (i.e. [1 48]).\n');
+    cprintf([0,0.6,0], 'Supported range: 0.3 ... 48 Hz\n');
+    x = input('Bandpass specification: ');
+
+    if ~isnumeric(x)
+      cprintf([1,0.5,0], 'Wrong input! It is not numeric.\n');
+    else
+      selection = true;
+      if x(1) < 0.3                                                         % lower cutoff frequency < 0.3 Hz
+        cprintf([1,0.5,0], 'Wrong input! Lower cutoff frequency is below 0.3 Hz.\n');
+        selection = false;
+      end
+
+      if x(end) > 48                                                        % upper cutoff frequency > 48 Hz
+        cprintf([1,0.5,0], 'Wrong input! Upper cutoff frequency is over 48 Hz.\n');
+        selection = false;
+      end
+
+      if x(1) >= x(end)                                                     % lower cutoff frequency >= upper cutoff frequency
+        cprintf([1,0.5,0], 'Wrong input! Upper cutoff frequency is smaller than the lower one.\n');
+        selection = false;
+      end
+
+      if numel(x) ~= 2                                                      % more or less than two values specified
+        cprintf([1,0.5,0], 'Wrong input! More or less than two values specified.\n');
+        selection = false;
+      end
+
+      if selection == true
+        bpRange = x;
+        bandpass = {['[' num2str(bpRange) ']']};
+      end
+    end
+  end
+end
+fprintf('\n');
+
 % Write selected settings to settings file
 file_path = [desPath '00_settings/' sprintf('settings_%s', sessionStr) '.xls'];
 if ~(exist(file_path, 'file') == 2)                                         % check if settings file already exist
@@ -85,13 +142,14 @@ if ~(exist(file_path, 'file') == 2)                                         % ch
   cfg.type        = 'settings';
   cfg.sessionStr  = sessionStr;
   
-  JOEI_createTbl(cfg);                                                       % create settings file
+  JOEI_createTbl(cfg);                                                      % create settings file
 end
 
 T = readtable(file_path);                                                   % update settings table
 warning off;
 T.fsample(numOfPart) = samplingRate;
 T.reference(numOfPart) = reference;
+T.bandpass(numOfPart) = bandpass;
 warning on;
 delete(file_path);
 writetable(T, file_path);
@@ -107,7 +165,7 @@ for i = numOfPart
   JOEI_loadData( cfg );
   
   cfg                   = [];
-  cfg.bpfreq            = [1 48];                                           % passband from 1 to 48 Hz
+  cfg.bpfreq            = bpRange;
   cfg.bpfilttype        = 'but';
   cfg.bpinstabilityfix  = 'split';
   cfg.samplingRate      = samplingRate;
@@ -134,4 +192,4 @@ end
 
 %% clear workspace
 clear file_path cfg sourceList numOfSources i selection samplingRate x ...
-      refchannel reference T
+      refchannel reference T bandpass bpRange

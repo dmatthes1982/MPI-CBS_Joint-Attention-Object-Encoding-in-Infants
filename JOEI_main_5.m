@@ -40,7 +40,7 @@ threshold_range   = [50, 200; ...                                           % ra
                      20, 100; ...                                           % range for method 'stddev'
                      3, 7];                                                 % range for method 'mad'
 
-% method selectiom
+% method selection
 selection = false;
 while selection == false
   cprintf([0,0.6,0], 'Please select an artifact detection method:\n');
@@ -127,6 +127,49 @@ if isempty(threshold)
 fprintf('\n');  
 end
 
+% channel selection (default settings)
+selection = false;
+while selection == false
+  cprintf([0,0.6,0], 'Do want to include all channels in artifact detection?\n');
+  x = input('Select [y/n]: ','s');
+  if strcmp('y', x)
+    selection = true;
+    selChan = {'all', '-V1', '-V2', '-REF', '-EOGV', '-EOGH'};
+    channels = {'all'};
+  elseif strcmp('n', x)
+    selection = true;
+    selChan = [];
+  else
+    selection = false;
+  end
+end
+
+% channel selection (user specification)
+if isempty(selChan)
+  cprintf([0,0.6,0], '\nAvailable channels will be determined. Please wait...\n');
+  cfg             = [];
+  cfg.srcFolder   = strcat(desPath, '02_preproc/');
+  cfg.filename    = sprintf('JOEI_p%02d_02_preproc', numOfPart(1));
+  cfg.sessionStr  = sessionStr;
+
+  JOEI_loadData( cfg );
+
+  label = data_preproc.label;
+  label = label(~ismember(label, {'V1', 'V2', 'REF', 'EOGV', 'EOGH'}));   % remove 'V1', 'V2', 'REF', 'EOGV' and 'EOGH'
+  clear data_preproc
+
+  sel = listdlg('PromptString', 'Select channels of interest...', ...     % open the dialog window --> the user can select the channels of interest
+              'ListString', label, ...
+              'ListSize', [220, 300] );
+
+  selChan = label(sel);
+  channels = {strjoin(selChan,',')};
+
+  fprintf('You have selected the following channels:\n');
+  fprintf('%s\n', channels{1});
+end
+fprintf('\n');
+
 % Write selected settings to settings file
 file_path = [desPath '00_settings/' sprintf('settings_%s', sessionStr) '.xls'];
 if ~(exist(file_path, 'file') == 2)                                         % check if settings file already exist
@@ -142,6 +185,7 @@ T = readtable(file_path);                                                   % up
 warning off;
 T.artMethod(numOfPart) = {method};
 T.artThreshold(numOfPart) = threshold;
+T.artChan(numOfPart) = channels;
 warning on;
 delete(file_path);
 writetable(T, file_path);
@@ -158,8 +202,7 @@ for i = numOfPart
   
   % automatic artifact detection
   cfg             = [];
-  cfg.channel     = {'all', '-V1', '-V2', '-REF', ...
-                     '-EOGV', '-EOGH'};
+  cfg.channel     = selChan;
   cfg.method      = method;                                                 % artifact detection method
   cfg.sliding     = sliding;                                                % use sliding window or not
   cfg.winsize     = winsize;                                                % size of sliding window
@@ -231,4 +274,5 @@ end
 
 %% clear workspace
 clear file_path numOfSources sourceList cfg i x y selection T threshold ...
-      method winsize sliding default_threshold threshold_range
+      method winsize sliding default_threshold threshold_range selChan ...
+      channels label sel
