@@ -61,7 +61,9 @@ colormap(f, cmap);                                                          % ch
 
 for i=1:1:conditions
   subplot(rows,columns,i,'parent', pg);
-  imagesc(artfctmap{i},[0 1]);                                              % plot subelements
+  h = imagesc(artfctmap{i},[0 1]);                                          % plot subelements
+  set(h,'alphadata',~isnan(artfctmap{i}));                                  % set nan values to transparent
+  set(gca,'color','white');                                                 % make the background white
   xlabel('time in sec');
   ylabel('channels');
 end
