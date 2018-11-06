@@ -25,19 +25,19 @@ if ~exist('numOfPart', 'var')                                               % es
 end
 
 %% part 5
-% 1. auto artifact detection (threshold and method is selectable - default: 'minmax', +-75 uV)
+% 1. auto artifact detection (threshold and method is selectable - default: 'minmax', +-75 µV)
 % 2. manual artifact detection (verification)
 
 cprintf([0,0.6,0], '<strong>[5] - Automatic and manual artifact detection</strong>\n');
 fprintf('\n');
 
-default_threshold = [75,   ...                                              % default for method 'minmax'
-                     100,  ...                                              % default for method 'range'
-                     50,   ...                                              % default for method 'stddev'
+default_threshold = [100,   ...                                             % default for method 'minmax'
+                     200,  ...                                              % default for method 'range'
+                     70,   ...                                              % default for method 'stddev'
                      7];                                                    % default for method 'mad'
 threshold_range   = [50, 200; ...                                           % range for method 'minmax'
-                     50, 200; ...                                           % range for method 'range'
-                     20, 80; ...                                            % range for method 'stddev'
+                     50, 300; ...                                           % range for method 'range'
+                     20, 100; ...                                           % range for method 'stddev'
                      3, 7];                                                 % range for method 'mad'
 
 % method selectiom
@@ -45,8 +45,8 @@ selection = false;
 while selection == false
   cprintf([0,0.6,0], 'Please select an artifact detection method:\n');
   fprintf('[1] - minmax threshold\n');
-  fprintf('[2] - range threshold within 200us, sliding window\n');
-  fprintf('[3] - stddev threshold within 200us, sliding window\n');
+  fprintf('[2] - range threshold within 200ms, sliding window\n');
+  fprintf('[3] - stddev threshold within 200ms, sliding window\n');
   fprintf('[4] - mutiple of median absolute deviation, sliding window\n');
   x = input('Option: ');
 
@@ -81,7 +81,7 @@ fprintf('\n');
 selection = false;
 while selection == false
   if x ~= 4
-    cprintf([0,0.6,0], 'Do you want to use the default threshold of %d uV for automatic artifact detection?\n', default_threshold(x));
+    cprintf([0,0.6,0], 'Do you want to use the default threshold of %d %sV for automatic artifact detection?\n', default_threshold(x), char(956));
   else
     cprintf([0,0.6,0], 'Do you want to use the default threshold of %d times of mad for automatic artifact detection?\n', default_threshold(x));
   end
@@ -103,9 +103,9 @@ if isempty(threshold)
   selection = false;
   while selection == false
     if x ~= 4
-      cprintf([0,0.6,0], 'Define the threshold (in uV) with a value from the range between %d and %d!\n', threshold_range(x,:));
+      cprintf([0,0.6,0], 'Define the threshold (in %sV) with a value from the range between %d and %d!\n', char(956), threshold_range(x,:));
       if x == 1
-        cprintf([0,0.6,0], 'Note: i.e. value 100 means threshold limits are +-100uV\n');
+        cprintf([0,0.6,0], 'Note: i.e. value 100 means threshold limits are +-100%sV\n', char(956));
       end
     else
       cprintf([0,0.6,0], 'Define the threshold (in mutiples of mad) with a value from the range between %d and %d!\n', threshold_range(x,:));
@@ -166,10 +166,10 @@ for i = numOfPart
   cfg.continuous  = 'no';                                                   % data is trial-based
   cfg.trllength   = 1000;                                                   % minimal subtrial length: 1 sec
   cfg.overlap     = 0;                                                      % no overlap
-  cfg.min         = -threshold;                                             % min: -threshold uV
-  cfg.max         = threshold;                                              % max: threshold uV
-  cfg.range       = threshold;                                              % range: threshold uV
-  cfg.stddev      = threshold;                                              % stddev: threshold uV
+  cfg.min         = -threshold;                                             % min: -threshold µV
+  cfg.max         = threshold;                                              % max: threshold µV
+  cfg.range       = threshold;                                              % range: threshold µV
+  cfg.stddev      = threshold;                                              % stddev: threshold µV
   cfg.mad         = threshold;                                              % mad: multiples of median absolute deviation
 
   cfg_autoart     = JOEI_autoArtifact(cfg, data_preproc);
