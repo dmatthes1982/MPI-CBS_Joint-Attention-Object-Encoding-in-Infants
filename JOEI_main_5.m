@@ -25,7 +25,7 @@ if ~exist('numOfPart', 'var')                                               % es
 end
 
 %% part 5
-% 1. auto artifact detection (threshold and method is selectable - default: 'minmax', +-75 µV)
+% 1. auto artifact detection (threshold and method is selectable - default: 'minmax', +-100 µV)
 % 2. manual artifact detection (verification)
 
 cprintf([0,0.6,0], '<strong>[5] - Automatic and manual artifact detection</strong>\n');
@@ -155,10 +155,10 @@ if isempty(selChan)
   JOEI_loadData( cfg );
 
   label = data_preproc.label;
-  label = label(~ismember(label, {'V1', 'V2', 'REF', 'EOGV', 'EOGH'}));   % remove 'V1', 'V2', 'REF', 'EOGV' and 'EOGH'
+  label = label(~ismember(label, {'V1', 'V2', 'REF', 'EOGV', 'EOGH'}));     % remove 'V1', 'V2', 'REF', 'EOGV' and 'EOGH'
   clear data_preproc
 
-  sel = listdlg('PromptString', 'Select channels of interest...', ...     % open the dialog window --> the user can select the channels of interest
+  sel = listdlg('PromptString', 'Select channels of interest...', ...       % open the dialog window --> the user can select the channels of interest
               'ListString', label, ...
               'ListSize', [220, 300] );
 
@@ -178,7 +178,7 @@ if ~(exist(file_path, 'file') == 2)                                         % ch
   cfg.type        = 'settings';
   cfg.sessionStr  = sessionStr;
   
-  JOEI_createTbl(cfg);                                                       % create settings file
+  JOEI_createTbl(cfg);                                                      % create settings file
 end
 
 T = readtable(file_path);                                                   % update settings table

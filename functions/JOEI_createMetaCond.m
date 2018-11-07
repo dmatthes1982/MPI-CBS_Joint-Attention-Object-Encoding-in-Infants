@@ -54,9 +54,44 @@ ft_warning off;
 fprintf(['Create data of meta conditions which are related to the '...
           'event %s...\n'], event);
 data = ft_redefinetrial(cfg, data);
+data = removeNaN( data );
 data.trialinfo = data.trialinfo + markerOffset;
 
 ft_info on;
 ft_warning on;
 
+end
+
+% -------------------------------------------------------------------------
+% SUBFUNCTION - Remove NaN segements of trials
+% -------------------------------------------------------------------------
+function [data] = removeNaN( data )
+  for i = 1:1:length(data.trial)
+    sampleVector = data.sampleinfo(i,1):1:data.sampleinfo(i,2);             % create a sample number vector using sampleinfo
+    mask = ~isnan(data.trial{i});                                           % estimate a non NaN mask
+    if ~all(mask(1,:))                                                      % is trial has NaNs
+      trial = data.trial{i}(:, mask(1,:));                                  % prune NaN part from trial
+      time  = data.time{i}(mask(1,:));                                      % remove related part from time vector
+      sampleVector = sampleVector(mask(1,:));                               % remove related pert from sample vector
+      if ~isempty(trial)                                                    % if trial is not empty
+        data.trial{i}         = trial;                                      % replace trial with pruned version
+        data.time{i}          = time - time(1);                             % replace time vector with pruned version and remove zero point offset
+        data.sampleinfo(i,1)  = sampleVector(1);                            % create adapted sampleinfo entry using pruned sample vector
+        data.sampleinfo(i,2)  = sampleVector(end);
+      else
+        cprintf([1,0.5,0], 'One trial completely removed. It had only NaN values.\n');
+        data.time{i}    = [];                                               % clear time vector
+        data.trial{i}   = [];                                               % clear trial array
+        data.sampleinfo = [0 0];                                            % set sampleinfo to 0 0
+        data.trialinfo  = 0;                                                % set trialinfo to 0
+      end
+    end
+  end
+
+  mask = cell2mat(cellfun(@(x) ~isempty(x), data.trial, ...                 % remove all empty trials and their additional parameters
+                    'UniformOutput', false));
+  data.trial      = data.trial(mask);
+  data.time       = data.time(mask);
+  data.sampleinfo = data.sampleinfo(mask,:);
+  data.trialinfo  = data.trialinfo(mask);
 end
