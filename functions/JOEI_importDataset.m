@@ -69,7 +69,7 @@ if strcmp(continuous, 'no')
   response = response(ismember({response(:).value}, 'R128'));
 
   if (control(1).sample == response(1).sample)
-    fprintf('Video start trigger and the control marker are matching.\n\n');
+    fprintf('Video start trigger and the control marker are matching.\n');
   else
     error(['Video start trigger and the control marker don''t match! '...
             'Please check your Interact export settings.\n']);
@@ -147,6 +147,23 @@ offset = {object(:).offset};
 idx = cellfun(@isempty, offset);
 offset(idx) = {0};
 gaze_inf.object.trl(:,3) = cell2mat(offset);
+
+for i = size(gaze_inf.object.trl,1):-1:1
+  startWithin = any(gaze_inf.object.trl(i,1) >= data.sampleinfo(:,1) & ...
+                    gaze_inf.object.trl(i,1) <= data.sampleinfo(:,2));
+  stopWithin  = any(gaze_inf.object.trl(i,2) >= data.sampleinfo(:,1) & ...
+                    gaze_inf.object.trl(i,2) <= data.sampleinfo(:,2));
+  status      = startWithin | stopWithin;
+
+  if status == false
+    cprintf([1,0.5,0], ['INFO: Event gaze_inf.object [%d to %d] cannot '...
+          'be attributed to any trial. It will be removed.\n'], ...
+          gaze_inf.object.trl(i,1), gaze_inf.object.trl(i,2));
+    gaze_inf.object.trl(i,:) = [];
+  end
+end
+
+fprintf('\n');
 
 marker  = event(ismember({event(:).type}, 'analysis_gaze'));                % mutual gaze
 mgaze   = marker(ismember({marker(:).value}, 'MutualGaze'));
