@@ -148,8 +148,10 @@ filepath = fileparts(mfilename('fullpath'));
 load(sprintf('%s/../general/JOEI_generalDefinitions.mat', filepath), ...    % load general definitions
      'generalDefinitions');
 
-condMark  = generalDefinitions.condMark(1, :);                              % extract condition identifiers
-condNum   = generalDefinitions.condNum;
+condNum   = [generalDefinitions.condNum generalDefinitions.metaCondNum];    % extract condition and meta condition numbers
+condMark  = num2cell(condNum);
+condMark  = cellfun(@(x) sprintf('S%3d', x), condMark, ...
+                      'UniformOutput', false);
 
 sel = listdlg('PromptString',' Select conditions...', ...                   % open the dialog window --> the user can select the conditions of interest
                 'ListString', condMark, ...
@@ -210,9 +212,9 @@ fprintf('\b\b.\n\n');
 clear x selection
 
 % -------------------------------------------------------------------------
-% Cluster specification
+% Channel selection
 % -------------------------------------------------------------------------
-fprintf('<strong>Cluster specification...</strong>\n');
+fprintf('<strong>Channel selection...</strong>\n');
 selection = false;
 while selection == false
   fprintf('Available options:\n');
