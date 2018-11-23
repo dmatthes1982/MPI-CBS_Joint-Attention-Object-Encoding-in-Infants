@@ -53,9 +53,9 @@ while selection == false
   cprintf([0,0.6,0], 'Please select segmentation overlap for pwelch estimation:\n');
   fprintf('[1] - 0.75 %%\n');
   fprintf('[2] - 0.50 %%\n');
-  x = input('Option: ');
+  y = input('Option: ');
 
-  switch x
+  switch y
     case 1
       selection = true;
       overlap = 0.75;
@@ -209,4 +209,4 @@ end
 
 %% clear workspace
 clear file_path cfg sourceList numOfSources i choise tfr pwelch T ...
-      artifactRejection artifactAvailable overlap
+      artifactRejection artifactAvailable overlap x y

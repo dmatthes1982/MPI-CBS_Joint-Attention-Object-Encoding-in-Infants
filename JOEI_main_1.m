@@ -153,14 +153,20 @@ for i = numOfPart
   fprintf('Load raw data...\n');
   JOEI_loadData( cfg );
   
-  % Concatenated raw trials to a continuous stream
+  % concatenated raw trials to a continuous stream
   data_continuous = JOEI_concatData( data_raw );
 
   fprintf('\n');
 
+  % detect noisy channels automatically
+  data_noisy = JOEI_estNoisyChan( data_continuous );
+
+  fprintf('\n');
+
   % select corrupted channels
-  data_badchan = JOEI_selectBadChan( data_continuous );
-  
+  data_badchan = JOEI_selectBadChan( data_continuous, data_noisy );
+  clear data_noisy
+
   % export the bad channels in a *.mat file
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '01c_badchan/');

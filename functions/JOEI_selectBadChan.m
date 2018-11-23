@@ -1,20 +1,32 @@
-function [ data_badchan ] = JOEI_selectBadChan( data_raw )
+function [ data_badchan ] = JOEI_selectBadChan( data_raw, data_noisy )
 % JOEI_SELECTBADCHAN can be used for selecting bad channels visually. The
-% data will be presented in the fieldtrip databrowser view and the bad
-% channels will be marked in the JOEI_CHANNELCHECKBOX gui. The function
-% returns a fieldtrip-like datastructure which includes only a cell array 
-% with the selected bad channels.
+% data will be presented in two different ways. The first fieldtrip
+% databrowser view shows the time course of each channel. The second view
+% shows the total power of each channel and is highlighting outliers. The
+% bad channels can be marked within the JAI_CHANNELCHECKBOX gui.
 %
 % Use as
-%   [ data_badchan ] = JOEI_selectBadChan( data_raw )
+%   [ data_badchan ] = JOEI_selectBadChan( data_raw, data_noisy )
 %
-% where the input has to be raw data
+% where the first input has to be concatenated raw data and second one has
+% to be the rsult of JAI_ESTNOISYCHAN.
 %
 % The function requires the fieldtrip toolbox
 %
-% SEE also JOEI_DATABROWSER and JOEI_CHANNELCHECKBOX
+% SEE also JOEI_DATABROWSER, JOEI_ESTNOISYCHAN and JOEI_CHANNELCHECKBOX
 
 % Copyright (C) 2018, Daniel Matthes, MPI CBS
+
+% -------------------------------------------------------------------------
+% Check data
+% -------------------------------------------------------------------------
+if numel(data_raw.trialinfo) ~= 1
+  error('First dataset has more than one trial. Data has to be concatenated!');
+end
+
+if ~isfield(data_noisy, 'totalpow')
+  error('Second dataset has to be the result of JAI_ESTNOISYCHAN!');
+end
 
 % -------------------------------------------------------------------------
 % Databrowser settings
@@ -28,10 +40,14 @@ cfg.plotevents  = 'no';
 % Selection of bad channels
 % -------------------------------------------------------------------------
 fprintf('<strong>Select bad channels...</strong>\n');
+JOEI_easyTotalPowerBarPlot( data_noisy );
+fig = gcf;                                                                  % default position is [560 528 560 420]
+fig.Position = [0 528 560 420];                                             % --> first figure will be placed on the left side of figure 2
 JOEI_databrowser( cfg, data_raw );
 badLabel = JOEI_channelCheckbox();
 close(gcf);                                                                 % close also databrowser view when the channelCheckbox will be closed
-if any(strcmp(badLabel, 'TP10'))
+close(gcf);                                                                 % close also total power diagram when the channelCheckbox will be closed
+ if any(strcmp(badLabel, 'TP10'))
   warning backtrace off;
   warning(['You have repaired ''TP10'', accordingly selecting linked ' ...
            'mastoid as reference in step [2] - preprocessing is not '...
@@ -48,7 +64,9 @@ if length(badLabel) >= 2
   warning backtrace on;
 end
 fprintf('\n');
-  
+
+data_badchan = data_noisy;
+
 if ~isempty(badLabel)
   data_badchan.badChan = data_raw.label(ismember(data_raw.label, badLabel));
 else

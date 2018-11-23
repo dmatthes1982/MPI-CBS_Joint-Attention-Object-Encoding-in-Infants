@@ -42,7 +42,7 @@ end
 cfgBP                   = [];
 cfgBP.bpfilter          = 'yes';                                            % use bandpass filter
 cfgBP.bpfreq            = bpfreq;                                           % bandpass range  
-cfgBP.bpfilttype        = bpfilttype;                                       % bandpass filter type = fir      
+cfgBP.bpfilttype        = bpfilttype;                                       % bandpass filter type
 cfgBP.bpinstabilityfix  = bpinstabilityfix;                                 % deal with filter instability
 cfgBP.channel           = 'all';                                            % use all channels
 cfgBP.trials            = 'all';                                            % use all trials
