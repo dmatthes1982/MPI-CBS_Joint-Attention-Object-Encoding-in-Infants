@@ -144,6 +144,8 @@ for i = numOfPart
   fprintf('<strong>Segmentation of preprocessed data.</strong>\n');
   data_preproc = JOEI_segmentation( cfg, data_preproc );
 
+  numOfAllSeg = JOEI_numOfSeg( data_preproc );                              % estimate number of segments for each existing condition
+  
   fprintf('\n');
 
   % Load artifact definitions
@@ -183,12 +185,16 @@ for i = numOfPart
     clear cfg_allart
   end
 
+  numOfGoodSeg = JOEI_numOfSeg( data_preproc);                              % estimate number of remaining segments (after artifact rejection) for each existing condition
+  
   % Estimation of power spectral density
   cfg         = [];
   cfg.foi     = 1:1:50;                                                     % frequency of interest
 
-  data_preproc = JOEI_pWelch( cfg, data_preproc );                          % calculate power spectral density using Welch's method
-  data_pwelch = data_preproc;                                               % to save need of RAM
+  data_preproc              = JOEI_pWelch( cfg, data_preproc );             % calculate power spectral density using Welch's method
+  data_pwelch               = data_preproc;                                 % to save need of RAM
+  data_pwelch.numOfAllSeg   = numOfAllSeg;                                  % add number of segments of each existing condition
+  data_pwelch.numOfGoodSeg  = numOfGoodSeg;                                 % add number of clean segments of each existing condition
   clear data_preproc
 
   % export PSD data into a *.mat file
@@ -209,4 +215,5 @@ end
 
 %% clear workspace
 clear file_path cfg sourceList numOfSources i choise tfr pwelch T ...
-      artifactRejection artifactAvailable overlap x y
+      artifactRejection artifactAvailable overlap x y numOfAllSeg ...
+      numOfGoodSeg

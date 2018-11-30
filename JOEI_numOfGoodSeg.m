@@ -4,11 +4,11 @@
 clc;
 JOEI_init;
 
-cprintf([0,0.6,0], '<strong>------------------------------------------------</strong>\n');
+cprintf([0,0.6,0], '<strong>----------------------------------------------------</strong>\n');
 cprintf([0,0.6,0], '<strong>Joint attention object encoding in infants</strong>\n');
-cprintf([0,0.6,0], '<strong>Export number of segments with artifacts</strong>\n');
+cprintf([0,0.6,0], '<strong>Export number of all and good segments per condition</strong>\n');
 cprintf([0,0.6,0], 'Copyright (C) 2018, Daniel Matthes, MPI CBS\n');
-cprintf([0,0.6,0], '<strong>------------------------------------------------</strong>\n');
+cprintf([0,0.6,0], '<strong>----------------------------------------------------</strong>\n');
 
 % -------------------------------------------------------------------------
 % Path settings
@@ -40,9 +40,9 @@ end
 % -------------------------------------------------------------------------
 % Session selection
 % -------------------------------------------------------------------------
-tmpPath = strcat(path, '05a_autoart/');
+tmpPath = strcat(path, '06a_pwelch/');
 
-fileList     = dir([tmpPath, 'JOEI_p*_05a_autoart_*.mat']);
+fileList     = dir([tmpPath, 'JOEI_p*_06a_pwelch_*.mat']);
 fileList     = struct2cell(fileList);
 fileList     = fileList(1,:);
 numOfFiles   = length(fileList);
@@ -51,7 +51,7 @@ sessionNum   = zeros(1, numOfFiles);
 fileListCopy = fileList;
 
 for i=1:1:numOfFiles
-  fileListCopy{i} = strsplit(fileList{i}, '05a_autoart_');
+  fileListCopy{i} = strsplit(fileList{i}, '06a_pwelch_');
   fileListCopy{i} = fileListCopy{i}{end};
   sessionNum(i) = sscanf(fileListCopy{i}, '%d.mat');
 end
@@ -98,11 +98,22 @@ fprintf('\n');
 clear sessionNum fileListCopy y userList match filePath cmdout attrib
 
 % -------------------------------------------------------------------------
-% Extract and export number of artifacts
+% Load general definitions
 % -------------------------------------------------------------------------
-tmpPath = strcat(path, '05a_autoart/');
+filepath = fileparts(mfilename('fullpath'));
+load(sprintf('%s/general/JOEI_generalDefinitions.mat', filepath), ...
+     'generalDefinitions');
 
-fileList     = dir([tmpPath, ['JOEI_p*_05a_autoart_' sessionStr '.mat']]);
+conditions = [generalDefinitions.condNum generalDefinitions.metaCondNum]';
+
+clear filepath generalDefinitions
+
+% -------------------------------------------------------------------------
+% Extract and export number of all and number of good segments
+% -------------------------------------------------------------------------
+tmpPath = strcat(path, '06a_pwelch/');
+
+fileList     = dir([tmpPath, ['JOEI_p*_06a_pwelch_' sessionStr '.mat']]);
 fileList     = struct2cell(fileList);
 fileList     = fileList(1,:);
 numOfFiles  = length(fileList);
@@ -111,33 +122,43 @@ for i = 1:1:numOfFiles
   numOfPart(i) = sscanf(fileList{i}, strcat('JOEI_p%d*', sessionStr, '.mat'));
 end
 
-file_path = strcat(tmpPath, fileList{i});
-load(file_path, 'cfg_autoart');
+cell_array = [num2cell(conditions), num2cell(zeros(numel(conditions), ...
+                    2*numOfFiles))];
 
-label = cfg_autoart.label';
+headline_part1 = num2cell(numOfPart);
+headline_part1 = cellfun(@(x) sprintf('P%02d_all', x), headline_part1, ...
+                          'UniformOutput', false);
+headline_part2 = num2cell(numOfPart);
+headline_part2 = cellfun(@(x) sprintf('P%02d_good', x), headline_part2, ...
+                          'UniformOutput', false);
 
-T = cell2table(num2cell(zeros(1, length(label) + 2 )));
-T.Properties.VariableNames = [{'participant', 'artifacts'}, label];         % create empty table with variable names
+headline = [headline_part1; headline_part2];
+headline = reshape(headline,1,[]);
+
+T = cell2table(cell_array);
+T.Properties.VariableNames = [{'condition'}, headline];                     % create empty table with variable names
+
+clear headline headline_part1 headline_part2 cell_array conditions
+
+fprintf('Import of data...\n\n');
+f = waitbar(0,'Please wait...');
 
 for i = 1:1:length(fileList)
   file_path = strcat(tmpPath, fileList{i});
-  load(file_path, 'cfg_autoart');
-
-  chan = ismember(label, cfg_autoart.label);                                % determine all channels which were used for artifact detection
-  pos = ismember(cfg_autoart.label, label);                                 % determine the order of the channels
-
-  tmpArt = zeros(1, length(label));
-  tmpArt(chan) = cfg_autoart.badNumChan(pos);                               % extract number of artifacts per channel for participant 1
-  tmpArt = num2cell(tmpArt);
+  load(file_path, 'data_pwelch');
 
   warning off;
-  T.participant(i)  = numOfPart(i);
-  T.artifacts(i)    = cfg_autoart.badNum;
-  T(i,3:length(label) + 2) = tmpArt;
+  T(:, 2*i)   = num2cell(data_pwelch.numOfAllSeg);
+  T(:, 2*i+1) = num2cell(data_pwelch.numOfGoodSeg);
   warning on;
+  
+  waitbar(i/numOfFiles, f, 'Please wait...');
 end
 
-file_path = strcat(path, '00_settings/', 'numOfArtifacts_', sessionStr, '.xls');
+close(f);
+clear f
+
+file_path = strcat(path, '00_settings/', 'numOfGoodSeg_', sessionStr, '.xls');
 fprintf('The default file path is: %s\n', file_path);
 
 selection = false;
@@ -165,10 +186,9 @@ if exist(file_path, 'file')
 end
 writetable(T, file_path);
 
-fprintf('\nNumber of segments with artifacts per participant exported to:\n');
+fprintf('\nNumber of all and good segments of all selected participant exported to:\n');
 fprintf('%s\n', file_path);
 
 %% clear workspace
 clear tmpPath path sessionStr fileList numOfFiles numOfPart i ...
-      file_path cfg_autoart T newPaths filename selection x chan label ...
-      pos tmpArt
+      file_path data_pwelch T newPaths filename selection x
