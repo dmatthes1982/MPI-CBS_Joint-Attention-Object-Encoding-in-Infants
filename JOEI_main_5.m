@@ -77,7 +77,7 @@ while selection == false
 end
 fprintf('\n');
 
-% use default settings
+% use default threshold
 selection = false;
 while selection == false
   if x ~= 4
@@ -98,7 +98,7 @@ while selection == false
 end
 fprintf('\n');
 
-% use alternative settings
+% use alternative threshold
 if isempty(threshold)
   selection = false;
   while selection == false
@@ -127,46 +127,52 @@ if isempty(threshold)
 fprintf('\n');  
 end
 
-% channel selection (default settings)
+% channel selection
 selection = false;
 while selection == false
-  cprintf([0,0.6,0], 'Do want to include all channels in artifact detection?\n');
-  x = input('Select [y/n]: ','s');
-  if strcmp('y', x)
-    selection = true;
-    selChan = {'all', '-V1', '-V2', '-REF', '-EOGV', '-EOGH'};
-    channels = {'all'};
-  elseif strcmp('n', x)
-    selection = true;
-    selChan = [];
-  else
-    selection = false;
-  end
-end
+  cprintf([0,0.6,0], 'Select channels, which should be used for artifact detection?\n');
+  fprintf('[1] - all channels (except V1, V2, REF, EOGV and EOGH)\n');
+  fprintf('[2] - only Fz, F3, F7, FC3, FC1, Cz, C3, C4, FC4, FC2, F4, F8\n');
+  fprintf('[3] - other specific selection\n');
+  x = input('Option: ');
 
-% channel selection (user specification)
-if isempty(selChan)
-  cprintf([0,0.6,0], '\nAvailable channels will be determined. Please wait...\n');
-  cfg             = [];
-  cfg.srcFolder   = strcat(desPath, '02_preproc/');
-  cfg.filename    = sprintf('JOEI_p%02d_02_preproc', numOfPart(1));
-  cfg.sessionStr  = sessionStr;
+  switch x
+    case 1
+      selection = true;
+      selChan = {'all', '-V1', '-V2', '-REF', '-EOGV', '-EOGH'};
+      channels = {'all'};
+    case 2
+      selection = true;
+      selChan = {'Fz', 'F3', 'F7', 'FC3', 'FC1', 'Cz', 'C3', 'C4', ...
+                  'FC4', 'FC2', 'F4', 'F8', '-V1', '-V2', '-REF', ...
+                  '-EOGV', '-EOGH'};
+      channels = {'Fz,F3,F7,FC3,FC1,Cz,C3,C4,FC4,FC2,F4,F8'};
+    case 3
+      selection = true;
+      cprintf([0,0.6,0], '\nAvailable channels will be determined. Please wait...\n');
+      cfg             = [];
+      cfg.srcFolder   = strcat(desPath, '02_preproc/');
+      cfg.filename    = sprintf('JOEI_p%02d_02_preproc', numOfPart(1));
+      cfg.sessionStr  = sessionStr;
 
-  JOEI_loadData( cfg );
+      JOEI_loadData( cfg );
 
-  label = data_preproc.label;
-  label = label(~ismember(label, {'V1', 'V2', 'REF', 'EOGV', 'EOGH'}));     % remove 'V1', 'V2', 'REF', 'EOGV' and 'EOGH'
-  clear data_preproc
+      label = data_preproc.label;
+      label = label(~ismember(label, {'V1', 'V2', 'REF', 'EOGV', 'EOGH'})); % remove 'V1', 'V2', 'REF', 'EOGV' and 'EOGH'
+      clear data_preproc
 
-  sel = listdlg('PromptString', 'Select channels of interest...', ...       % open the dialog window --> the user can select the channels of interest
+      sel = listdlg('PromptString', 'Select channels of interest...', ...   % open the dialog window --> the user can select the channels of interest
               'ListString', label, ...
               'ListSize', [220, 300] );
 
-  selChan = label(sel);
-  channels = {strjoin(selChan,',')};
+      selChan = label(sel);
+      channels = {strjoin(selChan,',')};
 
-  fprintf('You have selected the following channels:\n');
-  fprintf('%s\n', channels{1});
+      fprintf('You have selected the following channels:\n');
+      fprintf('%s\n', channels{1});
+    otherwise
+      cprintf([1,0.5,0], 'Wrong input!\n');
+  end
 end
 fprintf('\n');
 

@@ -124,14 +124,12 @@ end
 % -------------------------------------------------------------------------
 % Data import
 % -------------------------------------------------------------------------
-cfg.channel = {'all', '-T7_1', '-T7_2', '-T8_1', '-T8_2', ...               % exclude all general bad channels
-               '-PO9_1', '-PO9_2', '-PO10_1','-PO10_2', ...
-               '-P7_1', '-P7_2', '-P8_1', '-P8_2'};
+cfg.channel = 'all';                                                        % import all channels
 data = ft_preprocessing(cfg);                                               % import data
 
-data.label = strrep(data.label(1:26), '_1', '');                            % extract only the child's data
+data.label = strrep(data.label(1:32), '_1', '');                            % extract only the child's data
 for i=1:1:length(data.trial)
-  data.trial{i} = data.trial{i}(1:26,:);
+  data.trial{i} = data.trial{i}(1:32,:);
 end
 
 % -------------------------------------------------------------------------
