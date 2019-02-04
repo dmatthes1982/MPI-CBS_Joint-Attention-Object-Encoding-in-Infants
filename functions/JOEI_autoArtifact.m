@@ -239,6 +239,10 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.range;                  % find all violations
       [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
+      if size(begnum, 2) > 1                                                % begnum and channum has to be  row vectors
+        begnum = begnum';
+        channum = chanum';
+      end
       artfctmap{i} = [artfctmap{i} false(length(channel), winsize - 1)];    % extend artfctmap to trial size
       endnum = begnum + winsize - 1;                                        % estimate end numbers for each violation
       for j=1:1:length(channum)
@@ -262,6 +266,10 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.stddev;                 % find all violations
       [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
+      if size(begnum, 2) > 1                                                % begnum and channum has to be  row vectors
+        begnum = begnum';
+        channum = channum';
+      end
       artfctmap{i} = [artfctmap{i} false(length(channel), winsize - 1)];    % extend artfctmap to trial size
       endnum = begnum + winsize - 1;                                        % estimate end numbers for each violation
       for j=1:1:length(channum)
@@ -301,6 +309,10 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.mad*tmpmad;             % find all violations
       [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
+      if size(begnum, 2) > 1                                                % begnum and channum has to be  row vectors
+        begnum = begnum';
+        channum = chanum';
+      end
       artfctmap{i} = [artfctmap{i} false(length(channel), winsize - 1)];    % extend artfctmap to trial size
       endnum = begnum + winsize - 1;                                        % estimate end numbers for each violation
       for j=1:1:length(channum)
