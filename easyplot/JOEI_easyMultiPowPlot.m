@@ -19,14 +19,14 @@ function JOEI_easyMultiPowPlot(cfg, data)
 % -------------------------------------------------------------------------
 % Get and check config options
 % -------------------------------------------------------------------------
-cfg.cond    = ft_getopt(cfg, 'condition', 91);
+cond    = ft_getopt(cfg, 'condition', 91);
 
 filepath = fileparts(mfilename('fullpath'));                                % add utilities folder to path
 addpath(sprintf('%s/../utilities', filepath));
 
 trialinfo = data.trialinfo;                                                 % get trialinfo
 
-cfg.cond = JOEI_checkCondition( cfg.cond );                                 % check cfg.condition definition    
+cfg.cond = JOEI_checkCondition( cond, 'flag', 'meta' );                     % check cfg.condition definition
 if isempty(find(trialinfo == cfg.cond, 1))
   error('The selected dataset contains no condition %d.', cfg.cond);
 else

@@ -32,7 +32,7 @@ addpath(sprintf('%s/../utilities', filepath));
 trialinfo = data.trialinfo;                                                 % get trialinfo
 label     = data.label;                                                     % get labels 
 
-cond    = JOEI_checkCondition( cond );                                      % check cfg.condition definition    
+cond    = JOEI_checkCondition( cond, 'flag', 'meta' );                      % check cfg.condition definition
 if isempty(find(trialinfo == cond, 1))
   error('The selected dataset contains no condition %d.', cond);
 else
