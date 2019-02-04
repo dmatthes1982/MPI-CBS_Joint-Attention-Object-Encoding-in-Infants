@@ -1,9 +1,9 @@
-function JOEI_easyPSDplot(cfg, data)
-% JOEI_EASYPSDPLOT is a function, which makes it easier to plot the power
-% spectral density within a specific condition of the JOEI_DATASTRUCTURE
+function JOEI_easyPowPlot(cfg, data)
+% JOEI_EASYPOWPLOT is a function, which makes it easier to plot the
+% signal power within a specific condition of the RPS_DATASTRUCTURE
 %
 % Use as
-%   JOEI_easyPSDplot(cfg, data)
+%   JOEI_easyPowPlot(cfg, data)
 %
 % where the input data have to be a result from JOEI_PWELCH.
 %
@@ -17,7 +17,7 @@ function JOEI_easyPSDplot(cfg, data)
 %
 % See also JOEI_PWELCH, JOEI_DATASTRUCTURE
 
-% Copyright (C) 2018, Daniel Matthes, MPI CBS
+% Copyright (C) 2018-2019, Daniel Matthes, MPI CBS
 
 % -------------------------------------------------------------------------
 % Get and check config options
@@ -46,6 +46,9 @@ if isnumeric(elec)                                                          % ch
     end
   end
 else
+  if ischar(elec)
+    elec = {elec};
+  end
   tmpElec = zeros(1, length(elec));
   for i=1:length(elec)
     tmpElec(i) = find(strcmp(label, elec{i}));
@@ -61,7 +64,7 @@ if ~ismember(avgelec, {'yes', 'no'})                                        % ch
 end
 
 % -------------------------------------------------------------------------
-% Plot power spectral density (PSD)
+% Plot power spectrum
 % -------------------------------------------------------------------------
 legend('-DynamicLegend');
 hold on;
@@ -77,7 +80,7 @@ else
         'DisplayName', labelString);
 end
 
-title(sprintf('PSD - Cond.: %d', cond));                                    % set figure title
+title(sprintf('Power - Cond.: %d', cond));                                  % set figure title
 
 xlabel('frequency in Hz');                                                  % set xlabel
 ylabel('power in uV^2');                                                    % set ylabel

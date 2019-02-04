@@ -1,9 +1,9 @@
-function  [ data_pwelchod ] = JOEI_PSDoverParts( cfg )
-% JOEI_PSDOVERDYADS estimates the mean of the power spectral density values 
-% for all conditions and over all participants.
+function  [ data_pwelchod ] = JOEI_powOverParts( cfg )
+% JOEI_POWOVERPARTS estimates the mean of the power activity for all
+% conditions and over all participants.
 %
 % Use as
-%   [ data_pwelchod ] = JOEI_PSDoverDyads( cfg )
+%   [ data_pwelchod ] = JOEI_powOverParts( cfg )
 %
 % The configuration options are
 %   cfg.path      = source path' (i.e. '/data/pt_01904/eegData/EEG_JOEI_processedData/06a_pwelch/')
@@ -13,7 +13,7 @@ function  [ data_pwelchod ] = JOEI_PSDoverParts( cfg )
 % 
 % See also JOEI_PWELCH
 
-% Copyright (C) 2018, Daniel Matthes, MPI CBS 
+% Copyright (C) 2018-2019, Daniel Matthes, MPI CBS 
 
 % -------------------------------------------------------------------------
 % Get and check config options
@@ -32,7 +32,7 @@ load(sprintf('%s/../general/JOEI_generalDefinitions.mat', filepath), ...
 % -------------------------------------------------------------------------
 % Select participants
 % -------------------------------------------------------------------------    
-fprintf('<strong>Averaging PSD values over participants...</strong>\n');
+fprintf('<strong>Averaging power values over participants...</strong>\n');
 
 partsList   = dir([path, sprintf('JOEI_p*_06a_pwelch_%03d.mat', session)]);
 partsList   = struct2cell(partsList);
@@ -63,7 +63,8 @@ fprintf('\n');
 % -------------------------------------------------------------------------
 % Load and organize data
 % -------------------------------------------------------------------------
-data_out.trialinfo = generalDefinitions.condNum';
+data_out.trialinfo = [generalDefinitions.condNum ...
+                      generalDefinitions.metaCondNum]';
 
 data{1, numOfParts} = [];
 trialinfo{1, numOfParts} = [];
@@ -91,7 +92,7 @@ for i=1:1:numOfParts
   data{i} = cellfun(@(x) squeeze(x), data{i}, 'UniformOutput', false);
 end
 
-data = fixTrialOrder( data, trialinfo, generalDefinitions.condNum, ...
+data = fixTrialOrder( data, trialinfo, data_out.trialinfo, ...
                       listOfParts );
 
 data = cellfun(@(x) cat(3, x{:}), data, 'UniformOutput', false);
@@ -99,7 +100,7 @@ data = cellfun(@(x) shiftdim(x, 2), data, 'UniformOutput', false);
 data = cat(4, data{:});
 
 % -------------------------------------------------------------------------
-% Estimate averaged power spectral density (over participants)
+% Estimate averaged power spectrum (over participants)
 % -------------------------------------------------------------------------
 data = nanmean(data, 4);
 
@@ -120,7 +121,7 @@ emptyMatrix = NaN * ones(size(dataTmp{1}{1}, 1), size(dataTmp{1}{1}, 2));   % em
 fixed = false;
 
 for k = 1:1:size(dataTmp, 2)
-  if ~isequal(trInf{k}, trInfOrg')
+  if ~isequal(trInf{k}, trInfOrg)
     missingPhases = ~ismember(trInfOrg, trInf{k});
     missingPhases = trInfOrg(missingPhases);
     missingPhases = vec2str(missingPhases, [], [], 0);

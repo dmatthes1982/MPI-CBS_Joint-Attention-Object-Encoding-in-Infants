@@ -25,16 +25,16 @@ if ~exist('numOfPart', 'var')                                               % es
 end
 
 %% part 6
-% Calculate the power spectral density of the preprocessed data
+% Calculate the power spectrum of the preprocessed data
 
 cprintf([0,0.6,0], '<strong>[6] - Power analysis (pWelch)</strong>\n');
 fprintf('\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Calculation of power spectral density using Welch's method (pWelch)
+%% Calculation of power spectrum using Welch's method (pWelch)
 choise = false;
 while choise == false
-  cprintf([0,0.6,0], 'Should rejection of detected artifacts be applied before PSD estimation?\n');
+  cprintf([0,0.6,0], 'Should rejection of detected artifacts be applied before power estimation?\n');
   x = input('Select [y/n]: ','s');
   if strcmp('y', x)
     choise = true;
@@ -81,8 +81,8 @@ end
 
 T = readtable(file_path);                                                   % update settings table
 warning off;
-T.artRejectPSD(numOfPart) = { x };
-T.PSDoverlap(numOfPart) = overlap;
+T.artRejectPow(numOfPart) = { x };
+T.powOverlap(numOfPart) = overlap;
 warning on;
 delete(file_path);
 writetable(T, file_path);
@@ -187,17 +187,17 @@ for i = numOfPart
 
   numOfGoodSeg = JOEI_numOfSeg( data_preproc);                              % estimate number of remaining segments (after artifact rejection) for each existing condition
   
-  % Estimation of power spectral density
+  % Estimation of power spectrum
   cfg         = [];
   cfg.foi     = 1:1:50;                                                     % frequency of interest
 
-  data_preproc              = JOEI_pWelch( cfg, data_preproc );             % calculate power spectral density using Welch's method
+  data_preproc              = JOEI_pWelch( cfg, data_preproc );             % calculate power spectrum using Welch's method
   data_pwelch               = data_preproc;                                 % to save need of RAM
   data_pwelch.numOfAllSeg   = numOfAllSeg;                                  % add number of segments of each existing condition
   data_pwelch.numOfGoodSeg  = numOfGoodSeg;                                 % add number of clean segments of each existing condition
   clear data_preproc
 
-  % export PSD data into a *.mat file
+  % export power spectrum into a *.mat file
   cfg             = [];
   cfg.desFolder   = strcat(desPath, '06a_pwelch/');
   cfg.filename    = sprintf('JOEI_p%02d_06a_pwelch', i);
@@ -206,7 +206,7 @@ for i = numOfPart
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
                      '.mat');
 
-  fprintf('Power spectral density data of participant %d will be saved in:\n', i);
+  fprintf('Power spectrum of participant %d will be saved in:\n', i);
   fprintf('%s ...\n', file_path);
   JOEI_saveData(cfg, 'data_pwelch', data_pwelch);
   fprintf('Data stored!\n\n');
