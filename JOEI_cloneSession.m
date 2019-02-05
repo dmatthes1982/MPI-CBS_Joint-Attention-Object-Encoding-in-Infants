@@ -134,10 +134,11 @@ for i = 1:1:length(folderList)
                           'UniformOutput', false);
   fileList      = cat(1, fileList{:});
   if ~isempty(fileList)
-    fileExt       = unique(fileList(:,2));
+    fileExt       = fileList(:,2);
     fileList      = fileList(:,1);
     sessionFiles  = regexp(fileList, sessionStr);
     sessionFiles  = cellfun(@(x) ~isempty(x), sessionFiles);
+    fileExt       = unique(fileExt(sessionFiles));
     fileList      = fileList(sessionFiles);
     fileList      = cellfun(@(x) strrep(x, sessionStr, ''), fileList, ...
                     'UniformOutput',false);
