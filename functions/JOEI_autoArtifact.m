@@ -19,7 +19,7 @@ function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data )
 %                     only required, if cfg.sliding = 'no'
 %
 % Specify the trial specification, which will later be used with artifact rejection
-%   cfg.trllength   = trial length (default: 1000 ms = minimal subtrial length with plv estimation)
+%   cfg.trllength   = trial length (default: 200 ms)
 %   cfg.overlap     = amount of window overlapping in percentage (default: 0, permitted values: 0 or 50)
 %
 % Specify at least one of theses thresholds
@@ -48,7 +48,7 @@ if ~(strcmp(sliding, 'no') || strcmp(sliding, 'yes'))                       % va
   error('Sliding has to be either ''yes'' or ''no''!');
 end
 
-trllength   = ft_getopt(cfg, 'trllength',1000);                             % subtrial length to which the detected artifacts will be extended
+trllength   = ft_getopt(cfg, 'trllength', 200);                             % subtrial length to which the detected artifacts will be extended
 overlap     = ft_getopt(cfg, 'overlap', 0);                                 % overlapping between the subtrials
 
 if ~(overlap ==0 || overlap == 50)                                          % only non overlapping or 50% is allowed to simplify this function
@@ -239,7 +239,7 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.range;                  % find all violations
       [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
-      if size(begnum, 2) > 1                                                % begnum and channum has to be  row vectors
+      if size(begnum, 2) > 1                                                % begnum and channum have to be row vectors
         begnum = begnum';
         channum = chanum';
       end
@@ -266,7 +266,7 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.stddev;                 % find all violations
       [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
-      if size(begnum, 2) > 1                                                % begnum and channum has to be  row vectors
+      if size(begnum, 2) > 1                                                % begnum and channum have to be row vectors
         begnum = begnum';
         channum = channum';
       end
@@ -309,7 +309,7 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.mad*tmpmad;             % find all violations
       [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
-      if size(begnum, 2) > 1                                                % begnum and channum has to be  row vectors
+      if size(begnum, 2) > 1                                                % begnum and channum have to be row vectors
         begnum = begnum';
         channum = chanum';
       end
