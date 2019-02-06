@@ -75,6 +75,53 @@ if isempty(prestim)
 fprintf('\n');
 end
 
+selection = false;
+while selection == false
+  cprintf([0,0.6,0], 'Select channels, which are NOT of interest?\n');
+  fprintf('[1] - import all channels\n');
+  fprintf('[2] - reject T7, T8, PO9, PO10, P7, P8, TP10\n');
+  fprintf('[3] - reject specific selection\n');
+  x = input('Option: ');
+
+  switch x
+    case 1
+      selection = true;
+      noichan = [];
+      noichanStr = {'---'};
+    case 2
+      selection = true;
+      noichan = {'T7', 'T8', 'PO9', 'PO10', 'P7', 'P8', 'TP10'};
+      noichanStr = {'-T7,-T8,-PO9,-PO10,-P7,-P8,-TP10'};
+    case 3
+      selection = true;
+      cprintf([0,0.6,0], '\nAvailable channels will be determined. Please wait...\n');
+
+      load('layouts/mpi_customized_acticap32.mat', 'lay')
+      label = lay.label(1:end-2);
+      loc   = ~ismember(label, {'V1', 'V2', 'F9', 'F10'});                  % remove EOG-related electrodes from options to avoid errors
+      label = label(loc);
+
+      sel = listdlg('PromptString', ...                                     % open the dialog window --> the user can select the channels wich are not of interest
+              'Which channels are NOT of interest...', ...
+              'ListString', label, ...
+              'ListSize', [220, 300] );
+
+      noichan = label(sel)';
+      channels = {strjoin(noichan,',')};
+
+      fprintf('You have unselected the following channels:\n');
+      fprintf('%s\n', channels{1});
+
+      noichanStr = cellfun(@(x) strcat('-', x), noichan, ...
+                          'UniformOutput', false);
+      noichanStr = {strjoin(noichanStr,',')};
+      clear channels label loc sel
+    otherwise
+      cprintf([1,0.5,0], 'Wrong input!\n');
+  end
+end
+fprintf('\n');
+
 % Create settings file if not existing
 settings_file = [desPath '00_settings/' ...
                   sprintf('settings_%s', sessionStr) '.xls'];
@@ -92,6 +139,7 @@ T = readtable(settings_file);
 warning off;
 T.participant(numOfPart)  = numOfPart;
 T.prestim(numOfPart)      = prestim;
+T.noiChan(numOfPart)      = noichanStr;
 warning on;
 
 %% import data from brain vision eeg files %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,6 +147,7 @@ for i = numOfPart
   cfg               = [];
   cfg.path          = srcPath;
   cfg.part          = i;
+  cfg.noichan       = noichan;
   cfg.continuous    = 'no';
   cfg.prestim       = prestim;
   cfg.rejectoverlap = 'yes';
@@ -217,4 +266,4 @@ writetable(T, settings_file);
 
 %% clear workspace
 clear file_path cfg sourceList numOfSources i T badChan prestim ...
-      settings_file
+      settings_file lay noichan noichanStr

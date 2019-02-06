@@ -55,24 +55,37 @@ while selection == false
 end
 fprintf('\n');
 
+% determine available channels
+fprintf('Determine available channels...\n');
+cfg             = [];
+cfg.srcFolder   = strcat(desPath, '01d_repaired/');
+cfg.filename    = sprintf('JOEI_p%02d_01d_repaired', numOfPart(1));
+cfg.sessionStr  = sessionStr;
+
+JOEI_loadData( cfg );
+mastoid = ismember('TP10', data_repaired.label);
+clear data_repaired;
+
+% select favoured reference
 selection = false;
 while selection == false
   cprintf([0,0.6,0], 'Please select favoured reference:\n');
-  fprintf('[1] - Linked mastoid (''TP9'', ''TP10'')\n');
-  fprintf('[2] - Common average reference\n');
+  fprintf('[1] - Common average reference\n');
+  if(mastoid == true)
+    fprintf('[2] - Linked mastoid (''TP9'', ''TP10'')\n');
+  end
   x = input('Option: ');
 
-  switch x
-    case 1
-      selection = true;
-      refchannel = 'TP10';
-      reference = {'LM'};
-    case 2
-      selection = true;
-      refchannel = {'all', '-V1', '-V2'};
-      reference = {'CAR'};
-    otherwise
-      cprintf([1,0.5,0], 'Wrong input!\n');
+  if x == 1
+     selection = true;
+     refchannel = {'all', '-V1', '-V2'};
+     reference = {'CAR'};
+  elseif x == 2 && mastoid == true
+     selection = true;
+     refchannel = 'TP10';
+     reference = {'LM'};
+  else
+    cprintf([1,0.5,0], 'Wrong input!\n\n');
   end
 end
 fprintf('\n');
@@ -192,4 +205,4 @@ end
 
 %% clear workspace
 clear file_path cfg sourceList numOfSources i selection samplingRate x ...
-      refchannel reference T bandpass bpRange
+      refchannel reference T bandpass bpRange mastoid

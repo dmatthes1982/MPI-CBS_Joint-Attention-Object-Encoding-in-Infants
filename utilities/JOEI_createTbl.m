@@ -15,7 +15,7 @@ function JOEI_createTbl( cfg )
 %
 % This function requires the fieldtrip toolbox.
 
-% Copyright (C) 2018, Daniel Matthes, MPI CBS
+% Copyright (C) 2018-2019, Daniel Matthes, MPI CBS
 
 % -------------------------------------------------------------------------
 % Get config options
@@ -41,12 +41,12 @@ load(sprintf('%s/../general/JOEI_generalDefinitions.mat', filepath), ...
 % -------------------------------------------------------------------------
 switch type
   case 'settings'
-    T = table(1,0,{'unknown'},0,{'unknown'},{'unknown'},{'unknown'},0, ...
-              {'unknown'},0,{'unknown'});
+    T = table(1,{'unknown'},0,{'unknown'},0,{'unknown'},{'unknown'},...
+              {'unknown'},0, {'unknown'},0,{'unknown'});
     T.Properties.VariableNames = ...
-        {'participant', 'prestim', 'badChan', 'fsample', 'reference', ...
-         'bandpass', 'artMethod', 'artThreshold', 'artChan', ... 
-         'powOverlap', 'artRejectPow'};
+        {'participant', 'noiChan', 'prestim', 'badChan', 'fsample', ...
+         'reference', 'bandpass', 'artMethod', 'artThreshold', ...
+         'artChan', 'powOverlap', 'artRejectPow'};
     filepath = [desFolder type '_' sessionStr '.xls'];
     writetable(T, filepath);
   otherwise

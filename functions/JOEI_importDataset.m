@@ -8,6 +8,7 @@ function [ data, cfg_events ] = JOEI_importDataset(cfg)
 % The configuration options are
 %   cfg.path          = source path (i.e. '/data/pt_01904/eegData/EEG_JOEI_rawData/')
 %   cfg.part          = number of participant
+%   cfg.noichan       = channels which are not of interest (default: [])
 %   cfg.continuous    = 'yes' or 'no' (default: 'no')
 %   cfg.prestim       = define pre-Stimulus offset in seconds (default: 0)
 %   cfg.rejectoverlap = reject first of two overlapping trials, 'yes' or 'no' (default: 'yes')
@@ -33,6 +34,7 @@ function [ data, cfg_events ] = JOEI_importDataset(cfg)
 % -------------------------------------------------------------------------
 path          = ft_getopt(cfg, 'path', []);
 part          = ft_getopt(cfg, 'part', []);
+noichan       = ft_getopt(cfg, 'noichan', []);
 continuous    = ft_getopt(cfg, 'continuous', 'no');
 prestim       = ft_getopt(cfg, 'prestim', 0);
 rejectoverlap = ft_getopt(cfg, 'rejectoverlap', 'yes');
@@ -124,12 +126,25 @@ end
 % -------------------------------------------------------------------------
 % Data import
 % -------------------------------------------------------------------------
-cfg.channel = 'all';                                                        % import all channels
+if ~isempty(noichan)
+  noichan = cellfun(@(x) strcat('-', x), noichan, ...
+                          'UniformOutput', false);
+  noichanp1 = cellfun(@(x) strcat(x, '_1'), noichan, ...
+                          'UniformOutput', false);
+  noichanp2 = cellfun(@(x) strcat(x, '_2'), noichan, ...
+                          'UniformOutput', false);
+  cfg.channel = [ {'all'} noichanp1 noichanp2 ];                            % exclude channels which are not of interest
+else
+  cfg.channel = 'all';
+end
+
 data = ft_preprocessing(cfg);                                               % import data
 
-data.label = strrep(data.label(1:32), '_1', '');                            % extract only the child's data
+numOfChan = numel(data.label)/2;
+
+data.label = strrep(data.label(1:numOfChan), '_1', '');                     % extract only the child's data
 for i=1:1:length(data.trial)
-  data.trial{i} = data.trial{i}(1:32,:);
+  data.trial{i} = data.trial{i}(1:numOfChan,:);
 end
 
 % -------------------------------------------------------------------------
