@@ -9,6 +9,9 @@ function JOEI_easyPowPlot(cfg, data)
 %
 % The configuration options are 
 %   cfg.condition   = condition (default: 91 or 'BubblePreJAI1', see JOEI_DATASTRUCTURE)
+%   cfg.baseline    = baseline condition (default: [], can by any valid condition)
+%                     the values of the baseline condition will be subtracted
+%                     from the values of the selected condition (cfg.condition)
 %   cfg.electrode   = number of electrodes (default: {'Cz'} repsectively [8])
 %                     examples: {'Cz'}, {'F3', 'Fz', 'F4'}, [8] or [2, 1, 28]
 %   cfg.avgelec     = plot average over selected electrodes, options: 'yes' or 'no' (default: 'no')
@@ -22,9 +25,10 @@ function JOEI_easyPowPlot(cfg, data)
 % -------------------------------------------------------------------------
 % Get and check config options
 % -------------------------------------------------------------------------
-cond    = ft_getopt(cfg, 'condition', 91);
-elec    = ft_getopt(cfg, 'electrode', {'Cz'});
-avgelec = ft_getopt(cfg, 'avgelec', 'no');
+condition = ft_getopt(cfg, 'condition', 91);
+baseline  = ft_getopt(cfg, 'baseline', []);
+elec      = ft_getopt(cfg, 'electrode', {'Cz'});
+avgelec   = ft_getopt(cfg, 'avgelec', 'no');
 
 filepath = fileparts(mfilename('fullpath'));                                % add utilities folder to path
 addpath(sprintf('%s/../utilities', filepath));
@@ -32,11 +36,20 @@ addpath(sprintf('%s/../utilities', filepath));
 trialinfo = data.trialinfo;                                                 % get trialinfo
 label     = data.label;                                                     % get labels 
 
-cond    = JOEI_checkCondition( cond, 'flag', 'meta' );                      % check cfg.condition definition
-if isempty(find(trialinfo == cond, 1))
-  error('The selected dataset contains no condition %d.', cond);
+condition    = JOEI_checkCondition( condition, 'flag', 'meta' );            % check cfg.condition definition
+if isempty(find(trialinfo == condition, 1))
+  error('The selected dataset contains no condition %d.', condition);
 else
-  trialNum = ismember(trialinfo, cond);
+  trialNum = ismember(trialinfo, condition);
+end
+
+if ~isempty(baseline)
+  baseline    = JOEI_checkCondition( baseline );                            % check cfg.baseline definition
+  if isempty(find(trialinfo == baseline, 1))
+    error('The selected dataset contains no condition %d.', baseline);
+  else
+    baseNum = ismember(trialinfo, baseline);
+  end
 end
 
 if isnumeric(elec)                                                          % check cfg.electrode
@@ -69,18 +82,29 @@ end
 legend('-DynamicLegend');
 hold on;
 
+if isempty(baseline)                                                        % extract the powerspctrm matrix
+  powData = squeeze(data.powspctrm(trialNum,:,:));
+else
+  powData = squeeze(data.powspctrm(trialNum,:,:)) - ...                     % subtract baseline condition
+            squeeze(data.powspctrm(baseNum,:,:));
+end
+
 if strcmp(avgelec, 'no')
   for i = 1:1:length(elec)
-    plot(data.freq, squeeze(data.powspctrm(trialNum, elec(i),:)), ...
+    plot(data.freq, powData(elec(i),:), ...
         'DisplayName', data.label{elec(i)});
   end
 else
   labelString = strjoin(data.label(elec), ',');
-  plot(data.freq, mean(squeeze(data.powspctrm(trialNum, elec,:)), 1), ...
-        'DisplayName', labelString);
+  plot(data.freq, mean(powData(elec,:), 1), 'DisplayName', labelString);
 end
 
-title(sprintf('Power - Cond.: %d', cond));                                  % set figure title
+% set figure title
+if isempty(baseline)
+  title(sprintf('Power - Cond.: %d', condition));
+else
+  title(sprintf('Power - Cond.: %d-%d', condition, baseline));
+end
 
 xlabel('frequency in Hz');                                                  % set xlabel
 ylabel('power in uV^2');                                                    % set ylabel

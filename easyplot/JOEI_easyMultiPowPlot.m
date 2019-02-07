@@ -9,6 +9,10 @@ function JOEI_easyMultiPowPlot(cfg, data)
 %
 % The configuration options are 
 %   cfg.condition   = condition (default: 91 or 'BubblePreJAI1', see JOEI_DATASTRUCTURE)
+%   cfg.baseline    = baseline condition (default: [], can by any valid condition)
+%                     the values of the baseline condition will be subtracted
+%                     from the values of the selected condition (cfg.condition)
+
 %
 % This function requires the fieldtrip toolbox
 %
@@ -19,18 +23,28 @@ function JOEI_easyMultiPowPlot(cfg, data)
 % -------------------------------------------------------------------------
 % Get and check config options
 % -------------------------------------------------------------------------
-cond    = ft_getopt(cfg, 'condition', 91);
+cfg.condition = ft_getopt(cfg, 'condition', 91);
+cfg.baseline  = ft_getopt(cfg, 'baseline', []);
 
 filepath = fileparts(mfilename('fullpath'));                                % add utilities folder to path
 addpath(sprintf('%s/../utilities', filepath));
 
 trialinfo = data.trialinfo;                                                 % get trialinfo
 
-cfg.cond = JOEI_checkCondition( cond, 'flag', 'meta' );                     % check cfg.condition definition
-if isempty(find(trialinfo == cfg.cond, 1))
-  error('The selected dataset contains no condition %d.', cfg.cond);
+cfg.condition = JOEI_checkCondition( cfg.condition, 'flag', 'meta' );       % check cfg.condition definition
+if isempty(find(trialinfo == cfg.condition, 1))
+  error('The selected dataset contains no condition %d.', cfg.condition);
 else
-  trialNum = find(ismember(trialinfo, cfg.cond));
+  trialNum = find(ismember(trialinfo, cfg.condition));
+end
+
+if ~isempty(cfg.baseline)
+  cfg.baseline    = JOEI_checkCondition( cfg.baseline );                    % check cfg.baseline definition
+  if isempty(find(trialinfo == cfg.baseline, 1))
+    error('The selected dataset contains no condition %d.', cfg.baseline);
+  else
+    baseNum = ismember(trialinfo, cfg.baseline);
+  end
 end
 
 % -------------------------------------------------------------------------
@@ -49,12 +63,22 @@ chanHeight        = lay.height(sellay);
 % -------------------------------------------------------------------------
 % Multi power plot 
 % -------------------------------------------------------------------------
-datamatrix  = squeeze(data.powspctrm(trialNum, selchan, :));                %#ok<FNDSB> % extract the powerspctrm matrix    
+if isempty(cfg.baseline)                                                    % extract the powerspctrm matrix
+  datamatrix = squeeze(data.powspctrm(trialNum,selchan,:));
+else
+  datamatrix = squeeze(data.powspctrm(trialNum,selchan,:)) - ...            % subtract baseline condition
+                squeeze(data.powspctrm(baseNum,selchan,:));
+end
+
 xval        = data.freq;                                                    % extract the freq vector
 xmax        = max(xval);                                                    % determine the frequency maximum
 val         = ~ismember(selchan, eogvchan);                                 
-ymaxchan    = selchan(val);
-ymax        = max(max(datamatrix(ymaxchan, 1:48)));                         % determine the power maximum of all channels expect V1 und V2
+ychan       = selchan(val);
+ymin        = min(min(datamatrix(ychan, 1:48)));                            % determine the power minimum of all channels expect V1 und V2
+if(ymin > 0)
+  ymin = 0;
+end
+ymax        = max(max(datamatrix(ychan, 1:48)));                            % determine the power maximum of all channels expect V1 und V2
 
 hold on;                                                                    % hold the figure
 cla;                                                                        % clear all axis
@@ -68,11 +92,11 @@ ft_plot_lay(lay, 'box', 0, 'label', 0, 'outline', 1, 'point', 'no', ...
 % plot the channels
 for k=1:length(selchan) 
   yval = datamatrix(k, :);
-  setChanBackground([0 xmax], [0 ymax], chanX(k), chanY(k), ...             % set background of the channel boxes to white
+  setChanBackground([0 xmax], [ymin ymax], chanX(k), chanY(k), ...          % set background of the channel boxes to white
                     chanWidth(k), chanHeight(k));
   ft_plot_vector(xval, yval, 'width', chanWidth(k), 'height', chanHeight(k),...
                 'hpos', chanX(k), 'vpos', chanY(k), 'hlim', [0 xmax], ...
-                'vlim', [0 ymax], 'box', 0);
+                'vlim', [ymin ymax], 'box', 0);
 end
 
 % add the comment field
@@ -89,11 +113,15 @@ k = find(strcmp('SCALE', lay.label));
 if ~isempty(k)
   x = lay.pos(k,1);
   y = lay.pos(k,2);
-  plotScales([0 xmax], [0 ymax], x, y, chanWidth(1), chanHeight(1));
+  plotScales([0 xmax], [ymin ymax], x, y, chanWidth(1), chanHeight(1));
 end
 
 % set figure title
-title(sprintf('Power - Cond.: %d', cfg.cond));
+if isempty(cfg.baseline)
+  title(sprintf('Power - Cond.: %d', cfg.condition));
+else
+  title(sprintf('Power - Cond.: %d-%d', cfg.condition, cfg.baseline));
+end
 
 axis tight;                                                                 % format the layout
 axis off;                                                                   % remove the axis
