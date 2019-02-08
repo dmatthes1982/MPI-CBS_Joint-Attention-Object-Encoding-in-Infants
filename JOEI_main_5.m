@@ -158,7 +158,7 @@ while selection == false
       JOEI_loadData( cfg );
 
       label = data_preproc.label;
-      label = label(~ismember(label, {'V1', 'V2', 'REF', 'EOGV', 'EOGH'})); % remove 'V1', 'V2', 'REF', 'EOGV' and 'EOGH'
+      label = label(~ismember(label, {'REF', 'EOGV', 'EOGH'}));             % remove 'REF', 'EOGV' and 'EOGH'
       clear data_preproc
 
       sel = listdlg('PromptString', 'Select channels of interest...', ...   % open the dialog window --> the user can select the channels of interest
