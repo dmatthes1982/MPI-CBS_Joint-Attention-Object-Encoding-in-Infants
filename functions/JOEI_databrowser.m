@@ -10,7 +10,7 @@ function [ cfgArtifacts ] = JOEI_databrowser( cfg, data )
 %
 % The configuration options are
 %   cfg.part        = number of dyad (no default value)
-%   cfg.artifact    = Nx2 matrix with artifact segments (default: [])
+%   cfg.artifact    = structure with artifact specification, e.g. output of FT_ARTIFACT_THRESHOLD (default: [])
 %   cfg.channel     = channels of interest (default: 'all')
 %   cfg.ylim        = vertical scaling (default: [-100 100]);
 %   cfg.blocksize   = duration in seconds for cutting the data up (default: [])
@@ -23,7 +23,7 @@ function [ cfgArtifacts ] = JOEI_databrowser( cfg, data )
 % See also JOEI_IMPORTDATASET, JOEI_PREPROCESSING, JOEI_SEGMENTATION, 
 % JOEI_DATASTRUCTURE, FT_DATABROWSER
 
-% Copyright (C) 2018, Daniel Matthes, MPI CBS
+% Copyright (C) 2018-2019, Daniel Matthes, MPI CBS
 
 % -------------------------------------------------------------------------
 % Get and check config options
@@ -47,17 +47,17 @@ end
 % -------------------------------------------------------------------------
 % Configure and start databrowser
 % -------------------------------------------------------------------------
-cfg                               = [];
-cfg.ylim                          = ylim;
-cfg.blocksize                     = blocksize;
-cfg.viewmode                      = 'vertical';
-cfg.artfctdef.threshold.artifact  = artifact;
-cfg.continuous                    = 'no';
-cfg.channel                       = channel;
-cfg.plotevents                    = plotevents;
-cfg.event                         = event;
-cfg.artifactalpha                 = 0.7;
-cfg.showcallinfo                  = 'no';
+cfg                 = [];
+cfg.ylim            = ylim;
+cfg.blocksize       = blocksize;
+cfg.viewmode        = 'vertical';
+cfg.artfctdef       = artifact;
+cfg.continuous      = 'no';
+cfg.channel         = channel;
+cfg.plotevents      = plotevents;
+cfg.event           = event;
+cfg.artifactalpha   = 0.7;
+cfg.showcallinfo    = 'no';
 
 fprintf('Databrowser\n');
 

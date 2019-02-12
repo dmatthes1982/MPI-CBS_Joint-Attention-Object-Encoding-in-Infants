@@ -36,7 +36,7 @@ cfg.ylim        = [-100 100];
 % Check Data
 % -------------------------------------------------------------------------
 fprintf('\n<strong>Search visually for artifacts...</strong>\n');
-cfg.artifact = artifact.artfctdef.threshold.artifact;
+cfg.artifact = artifact.artfctdef;
 ft_warning off;
 JOEI_easyArtfctmapPlot(artifact);                                           % plot artifact map
 fig = gcf;                                                                  % default position is [560 528 560 420]
