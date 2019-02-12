@@ -13,6 +13,7 @@ function JOEI_easyTopoplot(cfg , data)
 %                     the values of the baseline condition will be subtracted
 %                     from the values of the selected condition (cfg.condition)
 %   cfg.freqlim     = limits for frequency in Hz (e.g. [6 9] or 10) (default: 10)
+%   cfg.zlim        = limits for color dimension, 'maxmin', 'maxabs', 'zeromax', 'minzero', or [zmin zmax] (default = 'maxmin')
 %
 % This function requires the fieldtrip toolbox
 %
@@ -26,6 +27,7 @@ function JOEI_easyTopoplot(cfg , data)
 condition = ft_getopt(cfg, 'condition', 91);
 baseline  = ft_getopt(cfg, 'baseline', []);
 freqlim   = ft_getopt(cfg, 'freqlim', 10);
+zlim      = ft_getopt(cfg, 'zlim', 'maxmin');
 
 filepath = fileparts(mfilename('fullpath'));                                % add utilities folder to path
 addpath(sprintf('%s/../utilities', filepath));
@@ -60,7 +62,7 @@ load(sprintf('%s/../layouts/mpi_customized_acticap32.mat', filepath), 'lay');
 cfg               = [];
 cfg.parameter     = 'powspctrm';
 cfg.xlim          = freqlim;
-cfg.zlim          = 'maxmin';
+cfg.zlim          = zlim;
 cfg.trials        = trialNum;
 cfg.colormap      = 'jet';
 cfg.marker        = 'on';

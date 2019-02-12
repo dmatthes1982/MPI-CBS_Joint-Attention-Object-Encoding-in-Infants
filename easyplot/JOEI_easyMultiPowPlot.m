@@ -12,7 +12,7 @@ function JOEI_easyMultiPowPlot(cfg, data)
 %   cfg.baseline    = baseline condition (default: [], can by any valid condition)
 %                     the values of the baseline condition will be subtracted
 %                     from the values of the selected condition (cfg.condition)
-
+%   cfg.log         = use a logarithmic scale for the y axis, options: 'yes' or 'no' (default: 'no')
 %
 % This function requires the fieldtrip toolbox
 %
@@ -25,6 +25,7 @@ function JOEI_easyMultiPowPlot(cfg, data)
 % -------------------------------------------------------------------------
 cfg.condition = ft_getopt(cfg, 'condition', 91);
 cfg.baseline  = ft_getopt(cfg, 'baseline', []);
+cfg.log       = ft_getopt(cfg, 'log', 'no');
 
 filepath = fileparts(mfilename('fullpath'));                                % add utilities folder to path
 addpath(sprintf('%s/../utilities', filepath));
@@ -68,6 +69,10 @@ if isempty(cfg.baseline)                                                    % ex
 else
   datamatrix = squeeze(data.powspctrm(trialNum,selchan,:)) - ...            % subtract baseline condition
                 squeeze(data.powspctrm(baseNum,selchan,:));
+end
+
+if strcmp(cfg.log, 'yes')
+  datamatrix = 10 * log10( datamatrix );
 end
 
 xval        = data.freq;                                                    % extract the freq vector
