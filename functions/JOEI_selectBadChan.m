@@ -3,13 +3,13 @@ function [ data_badchan ] = JOEI_selectBadChan( data_raw, data_noisy )
 % data will be presented in two different ways. The first fieldtrip
 % databrowser view shows the time course of each channel. The second view
 % shows the total power of each channel and is highlighting outliers. The
-% bad channels can be marked within the JAI_CHANNELCHECKBOX gui.
+% bad channels can be marked within the JOEI_CHANNELCHECKBOX gui.
 %
 % Use as
 %   [ data_badchan ] = JOEI_selectBadChan( data_raw, data_noisy )
 %
 % where the first input has to be concatenated raw data and second one has
-% to be the rsult of JAI_ESTNOISYCHAN.
+% to be the rsult of JOEI_ESTNOISYCHAN.
 %
 % The function requires the fieldtrip toolbox
 %
@@ -25,7 +25,7 @@ if numel(data_raw.trialinfo) ~= 1
 end
 
 if ~isfield(data_noisy, 'totalpow')
-  error('Second dataset has to be the result of JAI_ESTNOISYCHAN!');
+  error('Second dataset has to be the result of JOEI_ESTNOISYCHAN!');
 end
 
 % -------------------------------------------------------------------------
@@ -45,7 +45,7 @@ fig = gcf;                                                                  % de
 fig.Position = [0 528 560 420];                                             % --> first figure will be placed on the left side of figure 2
 JOEI_databrowser( cfg, data_raw );
 cfgCC.maxchan = fix(numel(data_raw.label) * 0.1);                           % estimate 10% of the total number of channels in the data
-badLabel = JAI_channelCheckbox( cfgCC );
+badLabel = JOEI_channelCheckbox( cfgCC );
 close(gcf);                                                                 % close also databrowser view when the channelCheckbox will be closed
 close(gcf);                                                                 % close also total power diagram when the channelCheckbox will be closed
  if any(strcmp(badLabel, 'TP10'))
