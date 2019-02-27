@@ -57,7 +57,12 @@ load(sprintf('%s/../layouts/mpi_customized_acticap32.mat', filepath),...
      'lay');
 
 [selchan, sellay] = match_str(data.label, lay.label);                       % extract the subselection of channels that is part of the layout
-eogvchan          = match_str(data.label, {'V1', 'V2'});                    % determine the vertical eog channles 
+eogvchan          = match_str(dataPlot.label, {'V1', 'V2'});                % determine the vertical eog channels
+eogvlay           = match_str(lay.label, {'V1', 'V2'});                     % determine the vertical eog related columns in the layout
+val               = ~ismember(selchan, eogvchan);
+selchan           = selchan(val);                                           % exclude vertical eog electrodes from the channels list
+val               = ~ismember(sellay, eogvlay);
+sellay            = sellay(val);                                            % exclude vertical eog electrodes from the layout list
 chanX             = lay.pos(sellay, 1);
 chanY             = lay.pos(sellay, 2);
 chanWidth         = lay.width(sellay);
@@ -80,15 +85,13 @@ end
 xval        = data.freq;                                                    % extract the freq vector
 xmax        = max(xval);                                                    % determine the frequency maximum
 
-val         = ~ismember(selchan, eogvchan);                                 
-ychan       = selchan(val);
 if ischar(powlim)
   if strcmp(powlim, 'maxmin')
-    ymin        = min(min(datamatrix(ychan, 1:48)));                        % determine the power minimum of all channels expect V1 und V2
+    ymin        = min(min(datamatrix(selchan, 1:48)));                      % determine the power minimum of all channels expect V1 und V2
     if(ymin > 0)
       ymin = 0;
     end
-    ymax        = max(max(datamatrix(ychan, 1:48)));                        % determine the power maximum of all channels expect V1 und V2
+    ymax        = max(max(datamatrix(selchan, 1:48)));                      % determine the power maximum of all channels expect V1 und V2
   else
     error('cfg.powlim has to be either ''maxmin'' or [pmin pmax].');
   end
