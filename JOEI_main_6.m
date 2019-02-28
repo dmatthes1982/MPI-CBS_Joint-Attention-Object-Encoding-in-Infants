@@ -50,20 +50,45 @@ fprintf('\n');
 
 selection = false;
 while selection == false
-  cprintf([0,0.6,0], 'Please select segmentation overlap for pwelch estimation:\n');
-  fprintf('[1] - 0.75 %%\n');
-  fprintf('[2] - 0.50 %%\n');
+  cprintf([0,0.6,0], 'Please select segmentation size for pwelch estimation:\n');
+  fprintf('[1] - 1 sec \n');
+  fprintf('[2] - 2 sec \n');
   y = input('Option: ');
 
   switch y
     case 1
       selection = true;
-      overlap = 0.75;
+      seglength = 1;
     case 2
       selection = true;
-      overlap = 0.5;
+      seglength = 2;
     otherwise
       cprintf([1,0.5,0], 'Wrong input!\n');
+  end
+end
+fprintf('\n');
+
+selection = false;
+while selection == false
+  cprintf([0,0.6,0], 'Please select segmentation overlap for pwelch estimation:\n');
+  fprintf('[1] - 0.50 %%\n');
+  fprintf('[2] - 0.75 %%\n');
+  if( seglength == 2 )
+    fprintf('[3] - 0.875 %%\n');
+  end
+  y = input('Option: ');
+
+  if y == 1
+    selection = true;
+    overlap = 0.5;
+  elseif y == 2
+    selection = true;
+    overlap = 0.75;
+  elseif y == 3 && seglength == 2
+    selection = true;
+    overlap = 0.875;
+  else
+    cprintf([1,0.5,0], 'Wrong input!\n\n');
   end
 end
 fprintf('\n');
@@ -82,7 +107,8 @@ end
 T = readtable(file_path);                                                   % update settings table
 warning off;
 T.artRejectPow(numOfPart) = { x };
-T.powOverlap(numOfPart) = overlap;
+T.powSeglength(numOfPart) = seglength;
+T.powOverlap(numOfPart)   = overlap;
 warning on;
 delete(file_path);
 writetable(T, file_path);
@@ -135,10 +161,10 @@ for i = numOfPart
 
   clear data_infObj data_mGaze data_mObj cfg_events
 
-  % Segmentation of conditions in segments of one second with 75 percent
+  % Segmentation of conditions in segments of x seconds with yy percent
   % overlapping
   cfg          = [];
-  cfg.length   = 1;                                                         % window length: 1 sec
+  cfg.length   = seglength;                                                 % window length
   cfg.overlap  = overlap;
 
   fprintf('<strong>Segmentation of preprocessed data.</strong>\n');
@@ -189,7 +215,7 @@ for i = numOfPart
   
   % Estimation of power spectrum
   cfg         = [];
-  cfg.foi     = 1:1:50;                                                     % frequency of interest
+  cfg.foi     = 1/seglength:1/seglength:50;                                 % frequency of interest
 
   data_preproc              = JOEI_pWelch( cfg, data_preproc );             % calculate power spectrum using Welch's method
   data_pwelch               = data_preproc;                                 % to save need of RAM
@@ -216,4 +242,4 @@ end
 %% clear workspace
 clear file_path cfg sourceList numOfSources i choise tfr pwelch T ...
       artifactRejection artifactAvailable overlap x y numOfAllSeg ...
-      numOfGoodSeg
+      numOfGoodSeg seglength
