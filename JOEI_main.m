@@ -451,6 +451,12 @@ while sessionStatus == true
       end
     case 4
       JOEI_main_4;
+      if quitproc == true
+        clear quitproc
+        break;
+      else
+        clear quitproc
+      end
       selection = false;
       while selection == false
         fprintf('<strong>Continue data processing with:</strong>\n');
