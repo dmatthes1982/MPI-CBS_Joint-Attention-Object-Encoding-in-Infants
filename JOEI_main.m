@@ -58,20 +58,20 @@ end
 if ~exist(strcat(desPath, '01b_events'), 'dir')
   mkdir(strcat(desPath, '01b_events'));
 end
-if ~exist(strcat(desPath, '01c_badchan'), 'dir')
-  mkdir(strcat(desPath, '01c_badchan'));
+if ~exist(strcat(desPath, '02a_badchan'), 'dir')
+  mkdir(strcat(desPath, '02a_badchan'));
 end
-if ~exist(strcat(desPath, '01d_repaired'), 'dir')
-  mkdir(strcat(desPath, '01d_repaired'));
-end
-if ~exist(strcat(desPath, '02_preproc'), 'dir')
-  mkdir(strcat(desPath, '02_preproc'));
+if ~exist(strcat(desPath, '02b_preproc1'), 'dir')
+  mkdir(strcat(desPath, '02b_preproc1'));
 end
 if ~exist(strcat(desPath, '03_icacomp'), 'dir')
   mkdir(strcat(desPath, '03_icacomp'));
 end
-if ~exist(strcat(desPath, '04_icacor'), 'dir')
-  mkdir(strcat(desPath, '04_icacor'));
+if ~exist(strcat(desPath, '04a_badcomp'), 'dir')
+  mkdir(strcat(desPath, '04a_badcomp'));
+end
+if ~exist(strcat(desPath, '04b_preproc2'), 'dir')
+  mkdir(strcat(desPath, '04b_preproc2'));
 end
 if ~exist(strcat(desPath, '05a_autoart'), 'dir')
   mkdir(strcat(desPath, '05a_autoart'));
@@ -202,10 +202,10 @@ if session == 0
 else
   while selection == false
     fprintf('\nPlease select what you want to do with the selected participants:\n');
-    fprintf('[1] - Data import and repairing of bad channels\n');
-    fprintf('[2] - Preprocessing, filtering, re-referencing\n');
-    cprintf([0.5 0.5 0.5], '[3] - ICA decomposition (currently not available)\n');
-    cprintf([0.5 0.5 0.5], '[4] - ICA based data correction (currently not available)\n');
+    fprintf('[1] - Data import\n');
+    fprintf('[2] - Preproc I: bad channel detection, filtering\n');
+    fprintf('[3] - ICA decomposition\n');
+    fprintf('[4] - Preproc II: ICA based data correction, bad channel recovery, re-referencing\n');
     fprintf('[5] - Automatic and manual artifact detection\n');
     fprintf('[6] - Power analysis (pWelch)\n');
     fprintf('[7] - Averaging over participants\n');
@@ -221,12 +221,10 @@ else
         selection = true;
       case 3
         part = 3;
-        selection = false;
-        cprintf([1,0.5,0], 'Currently not available!\n');
+        selection = true;
       case 4
         part = 4;
-        selection = false;
-        cprintf([1,0.5,0], 'Currently not available!\n');
+        selection = true;
       case 5
         part = 5;
         selection = true;
@@ -267,28 +265,28 @@ switch part
     tmpPath = strcat(desPath, '01a_raw/');
     fileNamePost = strcat(tmpPath, 'JOEI_p*_01a_raw_', sessionStr, '.mat');
   case 2
-    tmpPath = strcat(desPath, '01d_repaired/');
-    fileNamePre = strcat(tmpPath, 'JOEI_p*_01d_repaired_', sessionStr, '.mat');
-    tmpPath = strcat(desPath, '02_preproc/');
-    fileNamePost = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '01a_raw/');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_01a_raw_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '02b_preproc1/');
+    fileNamePost = strcat(tmpPath, 'JOEI_p*_02b_preproc1_', sessionStr, '.mat');
   case 3
-    tmpPath = strcat(desPath, '02_preproc/');
-    fileNamePre = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '02b_preproc1/');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_02b_preproc1_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '03_icacomp/');
     fileNamePost = strcat(tmpPath, 'JOEI_p*_03_icacomp_', sessionStr, '.mat');
   case 4
-    tmpPath = strcat(desPath, '03_icacomp/');
-    fileNamePre = strcat(tmpPath, 'JOEI_p*_03_icacomp_', sessionStr, '.mat');
-    tmpPath = strcat(desPath, '04_icacor/');
-    fileNamePost = strcat(tmpPath, 'JOEI_p*_04_icacor_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '02b_preproc1/');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_02b_preproc1_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '04b_preproc2/');
+    fileNamePost = strcat(tmpPath, 'JOEI_p*_04b_preproc2_', sessionStr, '.mat');
   case 5
-    tmpPath = strcat(desPath, '02_preproc/');
-    fileNamePre = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '04b_preproc2/');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_04b_preproc2_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '05b_allart/');
     fileNamePost = strcat(tmpPath, 'JOEI_p*_05b_allart_', sessionStr, '.mat');
   case 6
-    tmpPath = strcat(desPath, '02_preproc/');
-    fileNamePre = strcat(tmpPath, 'JOEI_p*_02_preproc_', sessionStr, '.mat');
+    tmpPath = strcat(desPath, '04b_preproc2/');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_04b_preproc2_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '06a_pwelch/');
     fileNamePost = strcat(tmpPath, 'JOEI_p*_06a_pwelch_', sessionStr, '.mat');
   case 7
@@ -398,7 +396,7 @@ while sessionStatus == true
       selection = false;
       while selection == false
         fprintf('<strong>Continue data processing with:</strong>\n');
-        fprintf('<strong>[2] - Preprocessing, filtering, re-referencing?</strong>\n');
+        fprintf('<strong>[2] - Preproc I: bad channel detection, filtering?</strong>\n');
         x = input('\nSelect [y/n]: ','s');
         if strcmp('y', x)
           selection = true;
@@ -416,17 +414,21 @@ while sessionStatus == true
       selection = false;
       while selection == false
         fprintf('<strong>Continue data processing with:</strong>\n');
-        fprintf('<strong>[5] - Automatic and manual detection of artifacts?</strong>\n');
-        x = input('\nSelect [y/n]: ','s');
-        if strcmp('y', x)
-          selection = true;
-          sessionStatus = true;
-          sessionPart = 5;
-        elseif strcmp('n', x)
-          selection = true;
-          sessionStatus = false;
-        else
-          selection = false;
+        fprintf('<strong>[3] - ICA decomposition?</strong>\n');
+        fprintf('<strong>[4] - Preproc II: ICA based data correction, bad channel recovery, re-referencing?</strong>\n');
+        x = input('\nSelect one of these options: ');
+        switch x
+          case 3
+            selection = true;
+            sessionStatus = true;
+            sessionPart = 3;
+          case 4
+            selection = true;
+            sessionStatus = true;
+            sessionPart = 4;
+          otherwise
+            selection = false;
+            cprintf([1,0.5,0], 'Wrong input!\n');
         end
       end
     case 3
@@ -434,7 +436,7 @@ while sessionStatus == true
       selection = false;
       while selection == false
         fprintf('<strong>Continue data processing with:</strong>\n');
-        fprintf('<strong>[4] - ICA based data correction?</strong>\n');
+        fprintf('<strong>[4] - Preproc II: ICA based data correction, bad channel recovery, re-referencing?</strong>\n');
         x = input('\nSelect [y/n]: ','s');
         if strcmp('y', x)
           selection = true;

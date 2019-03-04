@@ -1,5 +1,6 @@
 function [ data ] = JOEI_preprocessing( cfg, data )
-% JOEI_PREPROCESSING does the preprocessing of the raw data. 
+% JOEI_PREPROCESSING does the basic bandpass filtering of the raw data
+% and is calculating the EOG signals.
 %
 % Use as
 %   [ data ] = JOEI_preprocessing(cfg, data)
@@ -10,15 +11,14 @@ function [ data ] = JOEI_preprocessing( cfg, data )
 %   cfg.bpfreq            = passband range [begin end] (default: [0.1 48])
 %   cfg.bpfilttype        = bandpass filter type, 'but' or 'fir' (default: fir')
 %   cfg.bpinstabilityfix  = deal with filter instability, 'no' or 'split' (default: 'no')
-%   cfg.reref             = re-referencing: 'yes' or 'no' (default: 'yes')
-%   cfg.refchannel        = re-reference channel (default: 'TP10')
-%   cfg.samplingRate      = sampling rate in Hz (default: 500)
+%   cfg.badChan           = bad channels which should be excluded (default: [])
 %
 % This function requires the fieldtrip toolbox.
 %
-% See also JOEI_IMPORTDATASET, FT_PREPROCESSING, JOEI_DATASTRUCTURE
+% See also JOEI_IMPORTDATASET, JOEI_SELECTBADCHAN, FT_PREPROCESSING,
+% JOEI_DATASTRUCTURE
 
-% Copyright (C) 2018, Daniel Matthes, MPI CBS
+% Copyright (C) 2018-2019, Daniel Matthes, MPI CBS
 
 % -------------------------------------------------------------------------
 % Get and check config options
@@ -26,130 +26,86 @@ function [ data ] = JOEI_preprocessing( cfg, data )
 bpfreq            = ft_getopt(cfg, 'bpfreq', [0.1 48]);
 bpfilttype        = ft_getopt(cfg, 'bpfilttype', 'fir');
 bpinstabilityfix  = ft_getopt(cfg, 'bpinstabilityfix', 'no');
-reref             = ft_getopt(cfg, 'reref', 'yes');
-refchannel        = ft_getopt(cfg, 'refchannel', 'TP10');
-samplingRate      = ft_getopt(cfg, 'samplingRate', 500);
-
-if ~(samplingRate == 500 || samplingRate == 250 || samplingRate == 125)     
-  error('Only the following sampling rates are permitted: 500, 250 or 125 Hz');
-end  
+badChan           = ft_getopt(cfg, 'badChan', []);
 
 % -------------------------------------------------------------------------
-% Preprocessing settings
+% Channel configuration
+% -------------------------------------------------------------------------
+if ~isempty(badChan)
+  badChan = cellfun(@(x) sprintf('-%s', x), badChan, ...
+                 'UniformOutput', false);
+end  
+
+Chan = [{'all'} badChan];                                                   % do bandpassfiltering only with good channels and remove the bad once
+
+% -------------------------------------------------------------------------
+% Basic bandpass filtering
 % -------------------------------------------------------------------------
 
 % general filtering
-cfgBP                   = [];
-cfgBP.bpfilter          = 'yes';                                            % use bandpass filter
-cfgBP.bpfreq            = bpfreq;                                           % bandpass range  
-cfgBP.bpfilttype        = bpfilttype;                                       % bandpass filter type
-cfgBP.bpinstabilityfix  = bpinstabilityfix;                                 % deal with filter instability
-cfgBP.channel           = 'all';                                            % use all channels
-cfgBP.trials            = 'all';                                            % use all trials
-cfgBP.feedback          = 'no';                                             % feedback should not be presented
-cfgBP.showcallinfo      = 'no';                                             % prevent printing the time and memory after each function call
-
-% re-referencing
-cfgReref               = [];
-cfgReref.reref         = reref;                                             % enable re-referencing
-if ~iscell(refchannel)
-  cfgReref.refchannel    = {refchannel, 'REF'};                             % specify new reference
-else
-  cfgReref.refchannel    = [refchannel, {'REF'}];
-end
-cfgReref.implicitref   = 'REF';                                             % add implicit channel 'REF' to the channels
-cfgReref.refmethod     = 'avg';                                             % average over selected electrodes
-cfgReref.channel       = 'all';                                             % use all channels
-cfgReref.trials        = 'all';                                             % use all trials
-cfgReref.feedback      = 'no';                                              % feedback should not be presented
-cfgReref.showcallinfo  = 'no';                                              % prevent printing the time and memory after each function call
-cfgReref.calceogcomp   = 'yes';                                             % calculate eogh and eogv 
-
-% downsampling
-cfgDS                  = [];
-cfgDS.resamplefs       = samplingRate;
-cfgDS.feedback         = 'no';                                              % feedback should not be presented
-cfgDS.showcallinfo     = 'no';                                              % prevent printing the time and memory after each function call
+cfg                   = [];
+cfg.bpfilter          = 'yes';                                              % use bandpass filter
+cfg.bpfreq            = bpfreq;                                             % bandpass range
+cfg.bpfilttype        = bpfilttype;                                         % bandpass filter type
+cfg.bpinstabilityfix  = bpinstabilityfix;                                   % deal with filter instability
+cfg.trials            = 'all';                                              % use all trials
+cfg.feedback          = 'no';                                               % feedback should not be presented
+cfg.showcallinfo      = 'no';                                               % prevent printing the time and memory after each function call
+cfg.channel           = Chan;
 
 % -------------------------------------------------------------------------
 % Preprocessing
 % -------------------------------------------------------------------------
-fprintf('<strong>Preproc ...</strong>\n');
-orgFs = data.fsample;
-data  = bpfilter(cfgBP, data);
-data  = rereference(cfgReref, data);
-if orgFs ~= samplingRate
-  data = downsampling(cfgDS, data);
-else
-  data.fsample = orgFs;
-end  
+fprintf('Filter data (basic bandpass)...\n');
+data = ft_preprocessing(cfg, data);
+
+fprintf('Estimate EOG signals...\n');
+data = estimEOG(data);
 
 end
 
 % -------------------------------------------------------------------------
 % Local functions
 % -------------------------------------------------------------------------
-function [ data_out ] = bpfilter( cfgB, data_in )
-  
-data_out = ft_preprocessing(cfgB, data_in);
-  
-end
+function [ data_out ] = estimEOG( data_in )
 
-function [ data_out ] = downsampling( cfgD, data_in )
+cfg               = [];
+cfg.channel       = {'F9', 'F10'};
+cfg.reref         = 'yes';
+cfg.refchannel    = 'F10';
+cfg.showcallinfo  = 'no';
+cfg.feedback      = 'no';
 
+eogh              = ft_preprocessing(cfg, data_in);
+eogh.label{1}     = 'EOGH';
+
+cfg               = [];
+cfg.channel       = 'EOGH';
+cfg.showcallinfo  = 'no';
+
+eogh              = ft_selectdata(cfg, eogh);
+
+cfg               = [];
+cfg.channel       = {'V1', 'V2'};
+cfg.reref         = 'yes';
+cfg.refchannel    = 'V2';
+cfg.showcallinfo  = 'no';
+cfg.feedback      = 'no';
+
+eogv              = ft_preprocessing(cfg, data_in);
+eogv.label{1}     = 'EOGV';
+
+cfg               = [];
+cfg.channel       = 'EOGV';
+cfg.showcallinfo  = 'no';
+
+eogv              = ft_selectdata(cfg, eogv);
+
+cfg               = [];
+cfg.showcallinfo  = 'no';
 ft_info off;
-data_out = ft_resampledata(cfgD, data_in);
+data_out          = ft_appenddata(cfg, data_in, eogv, eogh);
+data_out.fsample  = data_in.fsample;
 ft_info on;
-
-end
-
-function [ data_out ] = rereference( cfgR, data_in )
-
-calcceogcomp = cfgR.calceogcomp;
-
-if strcmp(calcceogcomp, 'yes')
-  cfgtmp              = [];
-  cfgtmp.channel      = {'F9', 'F10'};
-  cfgtmp.reref        = 'yes';
-  cfgtmp.refchannel   = 'F10';
-  cfgtmp.showcallinfo = 'no';
-  cfgtmp.feedback     = 'no';
-  
-  eogh                = ft_preprocessing(cfgtmp, data_in);
-  eogh.label{1}       = 'EOGH';
-  
-  cfgtmp              = [];
-  cfgtmp.channel      = 'EOGH';
-  cfgtmp.showcallinfo = 'no';
-  
-  eogh                = ft_selectdata(cfgtmp, eogh); 
-  
-  cfgtmp              = [];
-  cfgtmp.channel      = {'V1', 'V2'};
-  cfgtmp.reref        = 'yes';
-  cfgtmp.refchannel   = 'V2';
-  cfgtmp.showcallinfo = 'no';
-  cfgtmp.feedback     = 'no';
-  
-  eogv                = ft_preprocessing(cfgtmp, data_in);
-  eogv.label{1}       = 'EOGV';
-  
-  cfgtmp              = [];
-  cfgtmp.channel      = 'EOGV';
-  cfgtmp.showcallinfo = 'no';
-  
-  eogv                = ft_selectdata(cfgtmp, eogv);
-end
-
-cfgR = removefields(cfgR, {'calcceogcomp'});
-data_out = ft_preprocessing(cfgR, data_in);
-
-if strcmp(calcceogcomp, 'yes')
-  cfgtmp              = [];
-  cfgtmp.showcallinfo = 'no';
-  ft_info off;
-  data_out            = ft_appenddata(cfgtmp, data_out, eogv, eogh);
-  ft_info on;
-end
 
 end

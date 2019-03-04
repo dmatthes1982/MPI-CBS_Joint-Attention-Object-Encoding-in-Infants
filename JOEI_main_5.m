@@ -1,8 +1,8 @@
 %% check if basic variables are defined
 if ~exist('sessionStr', 'var')
   cfg           = [];
-  cfg.subFolder = '02_preproc/';
-  cfg.filename  = 'JOEI_p01_02_preproc';
+  cfg.subFolder = '04b_preproc2/';
+  cfg.filename  = 'JOEI_p01_04b_preproc2';
   sessionStr    = sprintf('%03d', JOEI_getSessionNum( cfg ));               % estimate current session number
 end
 
@@ -11,7 +11,7 @@ if ~exist('desPath', 'var')
 end
 
 if ~exist('numOfPart', 'var')                                               % estimate number of participants in eyecor data folder
-  sourceList    = dir([strcat(desPath, '02_preproc/'), ...
+  sourceList    = dir([strcat(desPath, '04b_preproc2/'), ...
                        strcat('*_', sessionStr, '.mat')]);
   sourceList    = struct2cell(sourceList);
   sourceList    = sourceList(1,:);
@@ -20,7 +20,7 @@ if ~exist('numOfPart', 'var')                                               % es
 
   for i=1:1:numOfSources
     numOfPart(i)  = sscanf(sourceList{i}, ...
-                    strcat('JOEI_p%d_02_preproc_', sessionStr, '.mat'));
+                    strcat('JOEI_p%d_04b_preproc2_', sessionStr, '.mat'));
   end
 end
 
@@ -151,15 +151,15 @@ while selection == false
       selection = true;
       cprintf([0,0.6,0], '\nAvailable channels will be determined. Please wait...\n');
       cfg             = [];
-      cfg.srcFolder   = strcat(desPath, '02_preproc/');
-      cfg.filename    = sprintf('JOEI_p%02d_02_preproc', numOfPart(1));
+      cfg.srcFolder   = strcat(desPath, '04b_preproc2/');
+      cfg.filename    = sprintf('JOEI_p%02d_04b_preproc2', numOfPart(1));
       cfg.sessionStr  = sessionStr;
 
       JOEI_loadData( cfg );
 
-      label = data_preproc.label;
+      label = data_preproc2.label;
       label = label(~ismember(label, {'REF', 'EOGV', 'EOGH'}));             % remove 'REF', 'EOGV' and 'EOGH'
-      clear data_preproc
+      clear data_preproc2
 
       sel = listdlg('PromptString', 'Select channels of interest...', ...   % open the dialog window --> the user can select the channels of interest
               'ListString', label, ...
@@ -215,8 +215,8 @@ writetable(T, file_path);
 
 for i = numOfPart
   cfg             = [];
-  cfg.srcFolder   = strcat(desPath, '02_preproc/');
-  cfg.filename    = sprintf('JOEI_p%02d_02_preproc', i);
+  cfg.srcFolder   = strcat(desPath, '04b_preproc2/');
+  cfg.filename    = sprintf('JOEI_p%02d_04b_preproc2', i);
   cfg.sessionStr  = sessionStr;
   
   fprintf('<strong>Participant %d</strong>\n', i);
@@ -238,7 +238,7 @@ for i = numOfPart
   cfg.stddev      = threshold;                                              % stddev: threshold µV
   cfg.mad         = threshold;                                              % mad: multiples of median absolute deviation
 
-  cfg_autoart     = JOEI_autoArtifact(cfg, data_preproc);
+  cfg_autoart     = JOEI_autoArtifact(cfg, data_preproc2);
 
   % import existing manual selected artifacts
   if importArt == true
@@ -267,7 +267,7 @@ for i = numOfPart
   cfg.artifact  = cfg_autoart;
   cfg.part      = i;
   
-  cfg_allart    = JOEI_manArtifact(cfg, data_preproc);                           
+  cfg_allart    = JOEI_manArtifact(cfg, data_preproc2);
   
   % export the automatic selected artifacts into a *.mat file
   cfg_autoart.artfctdef = removefields(cfg_autoart.artfctdef, {'visual'});
@@ -284,7 +284,7 @@ for i = numOfPart
   fprintf('%s ...\n', file_path);
   JOEI_saveData(cfg, 'cfg_autoart', cfg_autoart);
   fprintf('Data stored!\n');
-  clear cfg_autoart data_preproc trl
+  clear cfg_autoart data_preproc2 trl
   
   % export the verified and the additional artifacts into a *.mat file
   cfg             = [];

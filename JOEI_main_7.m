@@ -2,7 +2,7 @@
 if ~exist('sessionStr', 'var')
   cfg           = [];
   cfg.subFolder = '06a_pwelch/';
-  cfg.filename  = 'JOEI_p01_006a_pwelch';
+  cfg.filename  = 'JOEI_p01_06a_pwelch';
   sessionStr    = sprintf('%03d', JOEI_getSessionNum( cfg ));               % estimate current session number
 end
 

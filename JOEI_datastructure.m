@@ -8,7 +8,7 @@
 % data_raw (1x1 fieldtrip data structure)
 %
 % In every substep of the data processing pipeline (i.e. 01a_raw,
-% 01b_events, 01c_badchan, 01d_repaired, 02_preproc, 03_icacomp ...) N
+% 01b_events, 02a_badchan, 02b_preproc1, 03_icacomp, 04a_badcomp ...) N
 % single datasets will be created. The number N stands for the current
 % number of participants within the study. Every dataset for each
 % participants is stored in a separate *.mat file, to avoid the need of

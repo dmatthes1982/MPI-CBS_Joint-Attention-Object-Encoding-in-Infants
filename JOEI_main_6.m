@@ -1,8 +1,8 @@
 %% check if basic variables are defined
 if ~exist('sessionStr', 'var')
   cfg           = [];
-  cfg.subfolder = '02_preproc';
-  cfg.filename  = 'JOEI_p01_02_preproc';
+  cfg.subfolder = '04b_preproc2';
+  cfg.filename  = 'JOEI_p01_04b_preproc2';
   sessionStr    = sprintf('%03d', JOEI_getSessionNum( cfg ));               % estimate current session number
 end
 
@@ -11,7 +11,7 @@ if ~exist('desPath', 'var')
 end
 
 if ~exist('numOfPart', 'var')                                               % estimate number of participants in eyecor data folder
-  sourceList    = dir([strcat(desPath, '02_preproc/'), ...
+  sourceList    = dir([strcat(desPath, '04b_preproc2/'), ...
                        strcat('*_', sessionStr, '.mat')]);
   sourceList    = struct2cell(sourceList);
   sourceList    = sourceList(1,:);
@@ -20,7 +20,7 @@ if ~exist('numOfPart', 'var')                                               % es
 
   for i=1:1:numOfSources
     numOfPart(i)  = sscanf(sourceList{i}, ...
-                    strcat('JOEI_p%d_02_preproc_', sessionStr, '.mat'));
+                    strcat('JOEI_p%d_04b_preproc2_', sessionStr, '.mat'));
   end
 end
 
@@ -118,8 +118,8 @@ for i = numOfPart
 
   % Load preprocessed data
   cfg             = [];
-  cfg.srcFolder   = strcat(desPath, '02_preproc/');
-  cfg.filename    = sprintf('JOEI_p%02d_02_preproc', i);
+  cfg.srcFolder   = strcat(desPath, '04b_preproc2/');
+  cfg.filename    = sprintf('JOEI_p%02d_04b_preproc2', i);
   cfg.sessionStr  = sessionStr;
 
   fprintf('Load preprocessed data...\n');
@@ -139,15 +139,15 @@ for i = numOfPart
   cfg.event     = 'infObj';
   cfg.eventSpec = cfg_events;
 
-  data_infObj   = JOEI_createMetaCond(cfg, data_preproc);
+  data_infObj   = JOEI_createMetaCond(cfg, data_preproc2);
 
   cfg.event     = 'mGaze';
 
-  data_mGaze    = JOEI_createMetaCond(cfg, data_preproc);
+  data_mGaze    = JOEI_createMetaCond(cfg, data_preproc2);
 
   cfg.event     = 'mObj';
 
-  data_mObj     = JOEI_createMetaCond(cfg, data_preproc);
+  data_mObj     = JOEI_createMetaCond(cfg, data_preproc2);
 
   % Unify datasets
   cfg = [];
@@ -155,7 +155,7 @@ for i = numOfPart
 
   ft_info off;
   fprintf('Append the meta condition datasets to the initial dataset...\n\n');
-  data_preproc  = ft_appenddata(cfg, data_preproc, data_infObj, ...
+  data_preproc2  = ft_appenddata(cfg, data_preproc2, data_infObj, ...
                                       data_mGaze, data_mObj);
   ft_info on;
 
@@ -168,9 +168,9 @@ for i = numOfPart
   cfg.overlap  = overlap;
 
   fprintf('<strong>Segmentation of preprocessed data.</strong>\n');
-  data_preproc = JOEI_segmentation( cfg, data_preproc );
+  data_preproc2 = JOEI_segmentation( cfg, data_preproc2 );
 
-  numOfAllSeg = JOEI_numOfSeg( data_preproc );                              % estimate number of segments for each existing condition
+  numOfAllSeg = JOEI_numOfSeg( data_preproc2 );                             % estimate number of segments for each existing condition
   
   fprintf('\n');
 
@@ -204,24 +204,24 @@ for i = numOfPart
       cfg.target    = 'single';
 
       fprintf('<strong>Artifact Rejection with preprocessed data.</strong>\n');
-      data_preproc = JOEI_rejectArtifacts(cfg, data_preproc);
+      data_preproc2 = JOEI_rejectArtifacts(cfg, data_preproc2);
       fprintf('\n');
     end
 
     clear cfg_allart
   end
 
-  numOfGoodSeg = JOEI_numOfSeg( data_preproc);                              % estimate number of remaining segments (after artifact rejection) for each existing condition
+  numOfGoodSeg = JOEI_numOfSeg( data_preproc2);                             % estimate number of remaining segments (after artifact rejection) for each existing condition
   
   % Estimation of power spectrum
   cfg         = [];
   cfg.foi     = 1/seglength:1/seglength:50;                                 % frequency of interest
 
-  data_preproc              = JOEI_pWelch( cfg, data_preproc );             % calculate power spectrum using Welch's method
-  data_pwelch               = data_preproc;                                 % to save need of RAM
+  data_preproc2             = JOEI_pWelch( cfg, data_preproc2 );            % calculate power spectrum using Welch's method
+  data_pwelch               = data_preproc2;                                % to save need of RAM
   data_pwelch.numOfAllSeg   = numOfAllSeg;                                  % add number of segments of each existing condition
   data_pwelch.numOfGoodSeg  = numOfGoodSeg;                                 % add number of clean segments of each existing condition
-  clear data_preproc
+  clear data_preproc2
 
   % export power spectrum into a *.mat file
   cfg             = [];

@@ -32,10 +32,8 @@ end
 
 %% part 1
 % 1. import data from brain vision eeg files and bring it into an order
-% 2. select corrupted channels 
-% 3. repair corrupted channels
 
-cprintf([0,0.6,0], '<strong>[1] - Data import and repairing of bad channels</strong>\n');
+cprintf([0,0.6,0], '<strong>[1] - Data import</strong>\n');
 fprintf('\n');
 
 selection = false;
@@ -188,82 +186,10 @@ for i = numOfPart
   clear cfg_events
 end
 
-fprintf('<strong>Repairing of corrupted channels</strong>\n\n');
-
-%% repairing of corrupted channels %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-for i = numOfPart
-  fprintf('<strong>Participant %d</strong>\n\n', i);
-  
-  cfg             = [];
-  cfg.srcFolder   = strcat(desPath, '01a_raw/');
-  cfg.filename    = sprintf('JOEI_p%02d_01a_raw', i);
-  cfg.sessionStr  = sessionStr;
-    
-  fprintf('Load raw data...\n');
-  JOEI_loadData( cfg );
-  
-  % concatenated raw trials to a continuous stream
-  data_continuous = JOEI_concatData( data_raw );
-
-  fprintf('\n');
-
-  % detect noisy channels automatically
-  data_noisy = JOEI_estNoisyChan( data_continuous );
-
-  fprintf('\n');
-
-  % select corrupted channels
-  data_badchan = JOEI_selectBadChan( data_continuous, data_noisy );
-  clear data_noisy
-
-  % export the bad channels in a *.mat file
-  cfg             = [];
-  cfg.desFolder   = strcat(desPath, '01c_badchan/');
-  cfg.filename    = sprintf('JOEI_p%02d_01c_badchan', i);
-  cfg.sessionStr  = sessionStr;
-
-  file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
-                     '.mat');
-
-  fprintf('Bad channels of participant %d will be saved in:\n', i); 
-  fprintf('%s ...\n', file_path);
-  JOEI_saveData(cfg, 'data_badchan', data_badchan);
-  fprintf('Data stored!\n\n');
-  clear data_continuous
-  
-  % add bad labels of bad channels to the settings file
-  if isempty(data_badchan.badChan)
-    badChan = {'---'};
-  else
-    badChan = {strjoin(data_badchan.badChan,',')};
-  end
-  warning off;
-  T.badChan(i) = badChan;
-  warning on;
-  
-  % repair corrupted channels
-  data_repaired = JOEI_repairBadChan( data_badchan, data_raw );
-  
-  % export the bad channels in a *.mat file
-  cfg             = [];
-  cfg.desFolder   = strcat(desPath, '01d_repaired/');
-  cfg.filename    = sprintf('JOEI_p%02d_01d_repaired', i);
-  cfg.sessionStr  = sessionStr;
-
-  file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...
-                     '.mat');
-
-  fprintf('Repaired raw data of participant %d will be saved in:\n', i); 
-  fprintf('%s ...\n', file_path);
-  JOEI_saveData(cfg, 'data_repaired', data_repaired);
-  fprintf('Data stored!\n\n');
-  clear data_repaired data_raw data_badchan 
-end
-
 % store settings table
 delete(settings_file);
 writetable(T, settings_file);
 
 %% clear workspace
-clear file_path cfg sourceList numOfSources i T badChan prestim ...
-      settings_file lay noichan noichanStr
+clear file_path cfg sourceList numOfSources i T prestim settings_file ...
+      lay noichan noichanStr
