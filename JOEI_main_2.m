@@ -3,11 +3,11 @@ if ~exist('sessionStr', 'var')
   cfg           = [];
   cfg.subFolder = '01d_repaired/';
   cfg.filename  = 'JOEI_p01_01d_repaired';
-  sessionStr    = sprintf('%03d', JOEI_getSessionNum( cfg ));                % estimate current session number
+  sessionStr    = sprintf('%03d', JOEI_getSessionNum( cfg ));               % estimate current session number
 end
 
 if ~exist('desPath', 'var')
-  desPath = '/data/pt_01904/eegData/EEG_JOEI_processedData/';                % destination path for processed data  
+  desPath = '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/';            % destination path for processed data  
 end
 
 if ~exist('numOfPart', 'var')                                               % estimate number of participants in repaired data folder

@@ -44,7 +44,7 @@ clear newPaths
 % Session selection
 % -------------------------------------------------------------------------
 fprintf('\n<strong>Session selection...</strong>\n');
-srcPath = [path 'EEG_JOEI_processedData/'];
+srcPath = [path 'EEG_JOEI_processedDataOld/'];
 srcPath = [srcPath  '06a_pwelch/'];
 
 fileList     = dir([srcPath, 'JOEI_p*_06a_pwelch_*.mat']);                  % determine all avaible sessions

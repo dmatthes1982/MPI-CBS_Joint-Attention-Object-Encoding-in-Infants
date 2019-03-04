@@ -7,13 +7,13 @@ JOEI_init;
 cprintf([0,0.6,0], '<strong>----------------------------------------------------</strong>\n');
 cprintf([0,0.6,0], '<strong>Joint attention object encoding in infants</strong>\n');
 cprintf([0,0.6,0], '<strong>Export number of all and good segments per condition</strong>\n');
-cprintf([0,0.6,0], 'Copyright (C) 2018, Daniel Matthes, MPI CBS\n');
+cprintf([0,0.6,0], 'Copyright (C) 2018-2019, Daniel Matthes, MPI CBS\n');
 cprintf([0,0.6,0], '<strong>----------------------------------------------------</strong>\n');
 
 % -------------------------------------------------------------------------
 % Path settings
 % -------------------------------------------------------------------------
-path = '/data/pt_01904/eegData/EEG_JOEI_processedData/';
+path = '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/';
 
 fprintf('\nThe default path is: %s\n', path);
 

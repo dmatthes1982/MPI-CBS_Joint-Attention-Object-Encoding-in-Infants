@@ -6,7 +6,7 @@ function [ num ] = JOEI_getSessionNum( cfg )
 %   [ num ] = JOEI_getSessionNum( cfg )
 %
 % The configuration options are
-%   cfg.desFolder   = destination folder (default: '/data/pt_01904/eegData/EEG_JOEI_processedData/')
+%   cfg.desFolder   = destination folder (default: '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/')
 %   cfg.subFolder   = name of subfolder (default: '01a_raw/')
 %   cfg.filename    = filename (default: 'JOEI_d01_01a_raw')
 %
@@ -17,7 +17,7 @@ function [ num ] = JOEI_getSessionNum( cfg )
 % -------------------------------------------------------------------------
 % Get config options
 % -------------------------------------------------------------------------
-desFolder   = ft_getopt(cfg, 'desFolder', '/data/pt_01904/eegData/EEG_JOEI_processedData/');
+desFolder   = ft_getopt(cfg, 'desFolder', '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/');
 subFolder   = ft_getopt(cfg, 'subFolder', '01a_raw/');
 filename    = ft_getopt(cfg, 'filename', 'JOEI_d01_01a_raw');
 

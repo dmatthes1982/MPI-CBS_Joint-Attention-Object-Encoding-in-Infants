@@ -5,7 +5,7 @@ function JOEI_loadData( cfg )
 %   JOEI_loadData( cfg )
 %
 % The configuration options are
-%   cfg.srcFolder   = source folder (default: '/data/pt_01904/eegData/EEG_JOEI_processedData/01_raw/')
+%   cfg.srcFolder   = source folder (default: '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/01_raw/')
 %   cfg.filename    = filename (default: 'JOEI_d01_01_raw')
 %   cfg.sessionStr  = number of session, format: %03d, i.e.: '003' (default: '001')
 %
@@ -18,7 +18,7 @@ function JOEI_loadData( cfg )
 % -------------------------------------------------------------------------
 % Get config options
 % -------------------------------------------------------------------------
-srcFolder   = ft_getopt(cfg, 'srcFolder', '/data/pt_01904/eegData/EEG_JOEI_processedData/01_raw/');
+srcFolder   = ft_getopt(cfg, 'srcFolder', '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/01_raw/');
 filename    = ft_getopt(cfg, 'filename', 'JOEI_d01_01_raw');
 sessionStr  = ft_getopt(cfg, 'sessionStr', '001');
 
