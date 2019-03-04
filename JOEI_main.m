@@ -12,7 +12,7 @@ clear LASTN
 
 cprintf([0,0.6,0], '<strong>------------------------------------------------------------</strong>\n');
 cprintf([0,0.6,0], '<strong>Joint attention object encoding in infants - data processing</strong>\n');
-cprintf([0,0.6,0], '<strong>Version: 0.1</strong>\n');
+cprintf([0,0.6,0], '<strong>Version: 0.2</strong>\n');
 cprintf([0,0.6,0], 'Copyright (C) 2018-2019, Daniel Matthes, MPI CBS\n');
 cprintf([0,0.6,0], '<strong>------------------------------------------------------------</strong>\n');
 
@@ -20,7 +20,7 @@ cprintf([0,0.6,0], '<strong>----------------------------------------------------
 % Path settings
 % -------------------------------------------------------------------------
 srcPath = '/data/pt_01904/eegData/EEG_JOEI_rawData/';
-desPath = '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/';
+desPath = '/data/pt_01904/eegData/EEG_JOEI_processedData/';
 
 fprintf('\nThe default paths are:\n');
 fprintf('Source: %s\n',srcPath);

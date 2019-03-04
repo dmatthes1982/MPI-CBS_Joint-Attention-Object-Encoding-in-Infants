@@ -6,7 +6,7 @@ function JOEI_createTbl( cfg )
 %   JOEI_createTbl( cfg )
 %
 % The configuration options are
-%   cfg.desFolder   = destination folder (default: '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/00_settings/')
+%   cfg.desFolder   = destination folder (default: '/data/pt_01904/eegData/EEG_JOEI_processedData/00_settings/')
 %   cfg.type        = type of documentation file (options: 'settings')
 %   cfg.sessionStr  = number of session, format: %03d, i.e.: '003' (default: '001')
 %
@@ -21,7 +21,7 @@ function JOEI_createTbl( cfg )
 % Get config options
 % -------------------------------------------------------------------------
 desFolder   = ft_getopt(cfg, 'desFolder', ...
-          '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/00_settings/');
+          '/data/pt_01904/eegData/EEG_JOEI_processedData/00_settings/');
 type        = ft_getopt(cfg, 'type', 'settings');
 sessionStr  = ft_getopt(cfg, 'sessionStr', []);
 

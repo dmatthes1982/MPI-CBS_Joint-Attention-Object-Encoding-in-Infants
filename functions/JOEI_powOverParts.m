@@ -6,7 +6,7 @@ function  [ data_pwelchod ] = JOEI_powOverParts( cfg )
 %   [ data_pwelchod ] = JOEI_powOverParts( cfg )
 %
 % The configuration options are
-%   cfg.path      = source path' (i.e. '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/06a_pwelch/')
+%   cfg.path      = source path' (i.e. '/data/pt_01904/eegData/EEG_JOEI_processedData/06a_pwelch/')
 %   cfg.session   = session number (default: 1)
 %
 % This function requires the fieldtrip toolbox
@@ -19,7 +19,7 @@ function  [ data_pwelchod ] = JOEI_powOverParts( cfg )
 % Get and check config options
 % -------------------------------------------------------------------------
 path      = ft_getopt(cfg, 'path', ...
-              '/data/pt_01904/eegData/EEG_JOEI_processedDataOld/06a_pwelch/');
+              '/data/pt_01904/eegData/EEG_JOEI_processedData/06a_pwelch/');
 session   = ft_getopt(cfg, 'session', 1);
 
 % -------------------------------------------------------------------------
