@@ -79,6 +79,7 @@ while selection == false
   elseif strcmp('n', x)
     selection = true;
     icacorr 	= false;
+    quitproc  = false;
   else
     selection = false;
   end
