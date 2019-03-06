@@ -260,8 +260,8 @@ for i = numOfPart
   ft_info on;
 
   cfg             = [];
-  cfg.desFolder   = strcat(desPath, '04b_preproc2/');
-  cfg.filename    = sprintf('JOEI_p%02d_04b_preproc2', i);
+  cfg.desFolder   = strcat(desPath, '04c_preproc2/');
+  cfg.filename    = sprintf('JOEI_p%02d_04c_preproc2', i);
   cfg.sessionStr  = sessionStr;
 
   file_path = strcat(cfg.desFolder, cfg.filename, '_', cfg.sessionStr, ...

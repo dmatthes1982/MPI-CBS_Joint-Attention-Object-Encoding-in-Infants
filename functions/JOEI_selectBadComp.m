@@ -24,6 +24,7 @@ load(sprintf('%s/../layouts/mpi_customized_acticap32.mat', filepath), ...
 cfg               = [];
 cfg.rejcomp       = [];
 cfg.blocksize     = 30;
+cfg.zlim          = 'maxabs';
 cfg.layout        = lay;
 cfg.colormap      = 'jet';
 cfg.showcallinfo  = 'no';

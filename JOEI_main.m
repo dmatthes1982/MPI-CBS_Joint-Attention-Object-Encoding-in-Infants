@@ -70,8 +70,11 @@ end
 if ~exist(strcat(desPath, '04a_badcomp'), 'dir')
   mkdir(strcat(desPath, '04a_badcomp'));
 end
-if ~exist(strcat(desPath, '04b_preproc2'), 'dir')
-  mkdir(strcat(desPath, '04b_preproc2'));
+if ~exist(strcat(desPath, '04b_corrected'), 'dir')
+  mkdir(strcat(desPath, '04b_corrected'));
+end
+if ~exist(strcat(desPath, '04c_preproc2'), 'dir')
+  mkdir(strcat(desPath, '04c_preproc2'));
 end
 if ~exist(strcat(desPath, '05a_autoart'), 'dir')
   mkdir(strcat(desPath, '05a_autoart'));
