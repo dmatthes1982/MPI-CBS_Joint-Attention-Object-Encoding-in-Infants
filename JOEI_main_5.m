@@ -1,8 +1,8 @@
 %% check if basic variables are defined
 if ~exist('sessionStr', 'var')
   cfg           = [];
-  cfg.subFolder = '04b_preproc2/';
-  cfg.filename  = 'JOEI_p01_04b_preproc2';
+  cfg.subFolder = '04c_preproc2/';
+  cfg.filename  = 'JOEI_p01_04c_preproc2';
   sessionStr    = sprintf('%03d', JOEI_getSessionNum( cfg ));               % estimate current session number
 end
 
@@ -10,8 +10,8 @@ if ~exist('desPath', 'var')
   desPath = '/data/pt_01904/eegData/EEG_JOEI_processedData/';               % destination path for processed data
 end
 
-if ~exist('numOfPart', 'var')                                               % estimate number of participants in eyecor data folder
-  sourceList    = dir([strcat(desPath, '04b_preproc2/'), ...
+if ~exist('numOfPart', 'var')                                               % estimate number of participants in preproc2 data folder
+  sourceList    = dir([strcat(desPath, '04c_preproc2/'), ...
                        strcat('*_', sessionStr, '.mat')]);
   sourceList    = struct2cell(sourceList);
   sourceList    = sourceList(1,:);
@@ -20,7 +20,7 @@ if ~exist('numOfPart', 'var')                                               % es
 
   for i=1:1:numOfSources
     numOfPart(i)  = sscanf(sourceList{i}, ...
-                    strcat('JOEI_p%d_04b_preproc2_', sessionStr, '.mat'));
+                    strcat('JOEI_p%d_04c_preproc2_', sessionStr, '.mat'));
   end
 end
 
@@ -151,8 +151,8 @@ while selection == false
       selection = true;
       cprintf([0,0.6,0], '\nAvailable channels will be determined. Please wait...\n');
       cfg             = [];
-      cfg.srcFolder   = strcat(desPath, '04b_preproc2/');
-      cfg.filename    = sprintf('JOEI_p%02d_04b_preproc2', numOfPart(1));
+      cfg.srcFolder   = strcat(desPath, '04c_preproc2/');
+      cfg.filename    = sprintf('JOEI_p%02d_04c_preproc2', numOfPart(1));
       cfg.sessionStr  = sessionStr;
 
       JOEI_loadData( cfg );
@@ -215,8 +215,8 @@ writetable(T, file_path);
 
 for i = numOfPart
   cfg             = [];
-  cfg.srcFolder   = strcat(desPath, '04b_preproc2/');
-  cfg.filename    = sprintf('JOEI_p%02d_04b_preproc2', i);
+  cfg.srcFolder   = strcat(desPath, '04c_preproc2/');
+  cfg.filename    = sprintf('JOEI_p%02d_04c_preproc2', i);
   cfg.sessionStr  = sessionStr;
   
   fprintf('<strong>Participant %d</strong>\n', i);
