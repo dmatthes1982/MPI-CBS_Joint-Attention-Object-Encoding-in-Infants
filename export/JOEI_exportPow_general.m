@@ -1,7 +1,7 @@
 % -------------------------------------------------------------------------
-% Add directory and subfolders to path
+% Add directory and subfolders to path, clear workspace, clear command
+% windwow
 % -------------------------------------------------------------------------
-clc;
 filepath = fileparts(mfilename('fullpath'));
 run([filepath '/../JOEI_init.m']);
 
