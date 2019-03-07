@@ -289,7 +289,7 @@ switch part
     fileNamePost = strcat(tmpPath, 'JOEI_p*_05b_allart_', sessionStr, '.mat');
   case 6
     tmpPath = strcat(desPath, '04c_preproc2/');
-    fileNamePre = strcat(tmpPath, 'JOEI_p*_04c_preproc2', sessionStr, '.mat');
+    fileNamePre = strcat(tmpPath, 'JOEI_p*_04c_preproc2_', sessionStr, '.mat');
     tmpPath = strcat(desPath, '06a_pwelch/');
     fileNamePost = strcat(tmpPath, 'JOEI_p*_06a_pwelch_', sessionStr, '.mat');
   case 7
