@@ -33,7 +33,7 @@ fprintf('\n');
 
 default_threshold = [100,   ...                                             % default for method 'minmax'
                      200,  ...                                              % default for method 'range'
-                     70,   ...                                              % default for method 'stddev'
+                     50,   ...                                              % default for method 'stddev'
                      7];                                                    % default for method 'mad'
 threshold_range   = [50, 200; ...                                           % range for method 'minmax'
                      50, 300; ...                                           % range for method 'range'
@@ -132,7 +132,7 @@ selection = false;
 while selection == false
   cprintf([0,0.6,0], 'Select channels, which should be used for artifact detection?\n');
   fprintf('[1] - all channels (except V1, V2, REF, EOGV and EOGH)\n');
-  fprintf('[2] - only Fz, F3, F7, FC3, FC1, Cz, C3, C4, FC4, FC2, F4, F8\n');
+  fprintf('[2] - only Fz, F3, FC3, FC1, Cz, C3, C4, FC4, FC2, F4\n');
   fprintf('[3] - other specific selection\n');
   x = input('Option: ');
 
@@ -143,10 +143,10 @@ while selection == false
       channels = {'all'};
     case 2
       selection = true;
-      selChan = {'Fz', 'F3', 'F7', 'FC3', 'FC1', 'Cz', 'C3', 'C4', ...
-                  'FC4', 'FC2', 'F4', 'F8', '-V1', '-V2', '-REF', ...
+      selChan = {'Fz', 'F3', 'FC3', 'FC1', 'Cz', 'C3', 'C4', ...
+                  'FC4', 'FC2', 'F4', '-V1', '-V2', '-REF', ...
                   '-EOGV', '-EOGH'};
-      channels = {'Fz,F3,F7,FC3,FC1,Cz,C3,C4,FC4,FC2,F4,F8'};
+      channels = {'Fz,F3,FC3,FC1,Cz,C3,C4,FC4,FC2,F4'};
     case 3
       selection = true;
       cprintf([0,0.6,0], '\nAvailable channels will be determined. Please wait...\n');
