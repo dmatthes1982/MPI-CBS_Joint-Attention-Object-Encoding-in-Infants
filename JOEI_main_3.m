@@ -59,6 +59,7 @@ for i = numOfPart
   cfg.channel     = {'all', '-F9', '-F10', '-V1' '-V2', '-EOGV', ...        % use all channels for transient artifact detection expect EOGV, EOGH and REF
                       '-EOGH', '-REF'};
   cfg.method      = 'range';
+  cfg.deadsegs   = 'no';                                                    % detection of segments in which at least one channel is dead or in saturation
   cfg.sliding     = 'no';
   cfg.continuous  = 'yes';
   cfg.trllength   = 200;                                                    % minimal subtrial length: 200 msec
@@ -71,6 +72,7 @@ for i = numOfPart
   cfg             = [];
   cfg.channel     = {'V1', 'V2', 'F9', 'F10'};                              % use only F9, F10, V1 and V2
   cfg.method      = 'range';
+  cfg.deadsegs   = 'no';                                                    % detection of segments in which at least one channel is dead or in saturation
   cfg.sliding     = 'no';
   cfg.continuous  = 'yes';
   cfg.trllength   = 200;                                                    % minimal subtrial length: 200 msec

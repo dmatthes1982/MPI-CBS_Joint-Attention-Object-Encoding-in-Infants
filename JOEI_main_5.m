@@ -127,6 +127,20 @@ if isempty(threshold)
 fprintf('\n');  
 end
 
+% detection of segments in which channels are dead or in saturation
+selection = false;
+while selection == false
+  cprintf([0,0.6,0], 'Do you want to mark segments as artificats in which channels are dead or in saturation?\n');
+  y = input('Select [y/n]: ','s');
+  if ismember(y, {'y','n'})
+    selection = true;
+    deadSegs = y;
+  else
+    selection = false;
+  end
+end
+fprintf('\n');
+
 % channel selection
 selection = false;
 while selection == false
@@ -179,7 +193,7 @@ fprintf('\n');
 % handle existing manual selected artifacts
 selection = false;
 while selection == false
-  cprintf([0,0.6,0], 'Do you want to load existing manual selected artifacts?\n');
+  cprintf([0,0.6,0], 'Do you want to load existing manually selected artifacts?\n');
   y = input('Select [y/n]: ','s');
   if strcmp('y', y)
     selection = true;
@@ -208,6 +222,7 @@ T = readtable(file_path);                                                   % up
 warning off;
 T.artMethod(numOfPart) = {method};
 T.artThreshold(numOfPart) = threshold;
+T.deadSegs(numOfPart) = {deadSegs};
 T.artChan(numOfPart) = channels;
 warning on;
 delete(file_path);
@@ -220,13 +235,28 @@ for i = numOfPart
   cfg.sessionStr  = sessionStr;
   
   fprintf('<strong>Participant %d</strong>\n', i);
-  fprintf('Load preprocessed data...\n\n');
+  fprintf('Load preprocessed data...\n');
   JOEI_loadData( cfg );
   
+  if strcmp(deadSegs, 'y')
+    cfg             = [];
+    cfg.srcFolder   = strcat(desPath, '01a_raw/');
+    cfg.filename    = sprintf('JOEI_p%02d_01a_raw', i);
+    cfg.sessionStr  = sessionStr;
+
+    fprintf('Load raw data...\n\n');
+    JOEI_loadData( cfg );
+  else
+    fprintf('\n');
+  end
+
   % automatic artifact detection
   cfg             = [];
   cfg.channel     = selChan;
   cfg.method      = method;                                                 % artifact detection method
+  if strcmp(deadSegs, 'y')
+    cfg.deadsegs   = 'yes';                                                 % detection of segments in which at least one channel is dead or in saturation
+  end
   cfg.sliding     = sliding;                                                % use sliding window or not
   cfg.winsize     = winsize;                                                % size of sliding window
   cfg.continuous  = 'no';                                                   % data is trial-based
@@ -238,7 +268,11 @@ for i = numOfPart
   cfg.stddev      = threshold;                                              % stddev: threshold µV
   cfg.mad         = threshold;                                              % mad: multiples of median absolute deviation
 
-  cfg_autoart     = JOEI_autoArtifact(cfg, data_preproc2);
+  if strcmp(deadSegs, 'n')
+    cfg_autoart     = JOEI_autoArtifact(cfg, data_preproc2);
+  else
+    cfg_autoart     = JOEI_autoArtifact(cfg, data_preproc2, data_raw);
+  end
 
   % import existing manual selected artifacts
   if importArt == true
@@ -284,7 +318,7 @@ for i = numOfPart
   fprintf('%s ...\n', file_path);
   JOEI_saveData(cfg, 'cfg_autoart', cfg_autoart);
   fprintf('Data stored!\n');
-  clear cfg_autoart data_preproc2 trl
+  clear cfg_autoart data_preproc2 data_raw trl
   
   % export the verified and the additional artifacts into a *.mat file
   cfg             = [];
@@ -322,4 +356,4 @@ end
 %% clear workspace
 clear file_path numOfSources sourceList cfg i x y selection T threshold ...
       method winsize sliding default_threshold threshold_range selChan ...
-      channels label sel importArt
+      channels label sel importArt deadSegs

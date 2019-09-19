@@ -1,17 +1,19 @@
-function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data )
+function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data, varargin )
 % JOEI_AUTOARTIFACT marks timeslots as an artifact in which the values of
 % specified channels exeeds either a min-max level, a defined range, a
 % standard deviation threshold or a defined mutiple of the median absolute
 % deviation.
 %
 % Use as
-%   [ cfgAutoArt ] = JOEI_autoArtifact(cfg, data)
+%   [ cfgAutoArt ] = JOEI_autoArtifact(cfg, data, varargin)
 %
 % where data have to be a result of JOEI_PREPROCESSING or JOEI_CONCATDATA
 %
 % The configuration options are
 %   cfg.channel     = cell-array with channel labels (default: {'Cz', 'O1', 'O2'}))
-%   cfg.method      = 'minmax', 'range' or 'stddev' (default: 'minmax'
+%   cfg.method      = 'minmax', 'range', 'stddev' or 'mad' (default: 'minmax')
+%   cfg.deadsegs   = 'yes' or 'no', estimating segments in which at least one channel is dead or in saturation
+%                     if cfg.deathsegs = yes, varargin has to be data_raw
 %   cfg.sliding     = use a sliding window, 'yes' or 'no', (default: 'no')
 %   cfg.winsize     = size of sliding window (default: 200 ms)
 %                     only required if cfg.sliding = 'yes'
@@ -35,13 +37,14 @@ function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data )
 % See also JOEI_GENTRL, JOEI_PREPROCESSING, JOEI_SEGMENTATION, 
 % JOEI_CONCATDATA, FT_ARTIFACT_THRESHOLD
 
-% Copyright (C) 2018, Daniel Matthes, MPI CBS
+% Copyright (C) 2019, Daniel Matthes, MPI CBS
 
 % -------------------------------------------------------------------------
 % Get and check config options
 % -------------------------------------------------------------------------
 chan        = ft_getopt(cfg, 'channel', {'Cz', 'O1', 'O2'});                % channels to test
 method      = ft_getopt(cfg, 'method', 'minmax');                           % artifact detection method
+deadsegs    = ft_getopt(cfg, 'deadsegs', 'no');                            	% estimating segments in which at least one channel is dead or in saturation
 sliding     = ft_getopt(cfg, 'sliding', 'no');                              % use a sliding window
 
 if ~(strcmp(sliding, 'no') || strcmp(sliding, 'yes'))                       % validate cfg.sliding
@@ -96,6 +99,10 @@ switch method                                                               % ge
     error('Only ''minmax'', ''range'' and ''stdev'' are supported methods');
 end
 
+if strcmp(deadsegs, 'yes')
+  data_raw = varargin{1};
+end
+
 % -------------------------------------------------------------------------
 % Artifact detection settings
 % -------------------------------------------------------------------------
@@ -148,6 +155,32 @@ ft_info off;
 fprintf('<strong>Estimate artifacts...</strong>\n');
 cfgAutoArt = artifact_detect(cfg, data);
 cfgAutoArt = keepfields(cfgAutoArt, {'artfctdef', 'showcallinfo'});
+
+if strcmp(deadsegs, 'yes')
+  fprintf('<strong>Run detection of segments in which at least one channel is dead or in saturation...</strong>\n');
+  cfg2 = [];
+  cfg2.method                        = 'zero';
+  cfg2.sliding                       = 'yes';
+  cfg2.artfctdef.threshold.channel   = chan;                                % specify channels of interest
+  cfg2.artfctdef.threshold.bpfilter  = 'no';                                % use no additional bandpass
+  cfg2.artfctdef.threshold.bpfreq    = [];                                  % use no additional bandpass
+  cfg2.artfctdef.threshold.onset     = [];                                  % just defined to get a similar output from ft_artifact_threshold and artifact_threshold
+  cfg2.artfctdef.threshold.offset    = [];                                  % just defined to get a similar output from ft_artifact_threshold and artifact_threshold
+  cfg2.artfctdef.threshold.zero      = 1.5;
+  cfg2.artfctdef.threshold.winsize   = 200;
+  cfg2.artfctdef.threshold.trl       = trl;
+  cfg2.showcallinfo                  = 'no';
+
+  cfgDeadSeg = artifact_detect(cfg2, data_raw);
+  cfgAutoArt.artfctdef.threshold.artfctmap = cellfun(@(X,Y) or(X,Y), ...    % merge artifact maps
+        cfgAutoArt.artfctdef.threshold.artfctmap, ...
+        cfgDeadSeg.artfctdef.threshold.artfctmap, 'UniformOutput', false);
+  cfgAutoArt.artfctdef.threshold.artifact = ...                             % combine artifact list
+            [cfgAutoArt.artfctdef.threshold.artifact; ...
+              cfgDeadSeg.artfctdef.threshold.artifact];
+  cfgAutoArt.artfctdef.threshold.zero = 1.5;                                % add zero-artifact threshold
+end
+
 [cfgAutoArt.artfctdef.threshold, cfgAutoArt.badNum] = ...                   % extend artifacts to subtrial definition
                 combineArtifacts( overlap, trllength, ...
                                   cfgAutoArt.artfctdef.threshold );
@@ -223,64 +256,37 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
   if isfield(cfgT.artfctdef.threshold, 'range')                             % check for range violations
     for i=1:1:numOfTrl
       tmpmin = movmin(data_in.trial{i}, winsize, 2);                        % get all minimum values
-      if mod(winsize, 2)                                                    % remove useless results from the edges
-        tmpmin = tmpmin(:, (winsize/2 + 1):(end-winsize/2));
-      else
-        tmpmin = tmpmin(:, (winsize/2 + 1):(end-winsize/2 + 1));
-      end
+      tmpmin = prune_mat(tmpmin, winsize);                                  % remove useless results from the edges
 
       tmpmax = movmax(data_in.trial{i}, winsize, 2);                        % get all maximum values
-      if mod(winsize, 2)                                                    % remove useless results from the edges
-        tmpmax = tmpmax(:, (winsize/2 + 1):(end-winsize/2));
-      else
-        tmpmax = tmpmax(:, (winsize/2 + 1):(end-winsize/2 + 1));
-      end
+      tmpmax = prune_mat(tmpmax, winsize);                                  % remove useless results from the edges
+
       tmp = abs(tmpmin - tmpmax);                                           % estimate a moving maximum difference
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.range;                  % find all violations
-      [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
-      if size(begnum, 2) > 1                                                % begnum and channum have to be row vectors
-        begnum = begnum';
-        channum = chanum';
-      end
-      artfctmap{i} = [artfctmap{i} false(length(channel), winsize - 1)];    % extend artfctmap to trial size
-      endnum = begnum + winsize - 1;                                        % estimate end numbers for each violation
-      for j=1:1:length(channum)
-        artfctmap{i}(channum(j), begnum(j):endnum(j)) = true;               % extend the violations in the map to the window size
-      end
-      if ~isempty(begnum)
-        begnum = unique(begnum);                                            % select all unique violations
-        begnum = begnum + data_in.sampleinfo(i,1) - 1;                      % convert relative sample number into an absolute one
-        begnum(:,2) = begnum(:,1) + winsize - 1;
-        artifact = [artifact; begnum];                                      %#ok<AGROW> add results to the artifacts matrix
-      end
+      [artfctmap{i}, artifact] = estim_artifact_limits(artfctmap{i}, ...    % add artifact to the artifacts matrix, extend the violations in the map to the window size
+                                    artifact, data_in.sampleinfo(i,1), ...
+                                    channel, winsize);
     end
   elseif isfield(cfgT.artfctdef.threshold, 'stddev')                        % check for standard deviation violations
     for i=1:1:numOfTrl
       tmp = movstd(data_in.trial{i}, winsize, 0, 2);                        % estimate a moving standard deviation
-      if mod(winsize, 2)                                                    % remove useless results from the edges
-        tmp = tmp(:, (winsize/2 + 1):(end-winsize/2));
-      else
-        tmp = tmp(:, (winsize/2 + 1):(end-winsize/2 + 1));
-      end
+      tmp = prune_mat(tmp, winsize);                                        % remove useless results from the edges
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.stddev;                 % find all violations
-      [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
-      if size(begnum, 2) > 1                                                % begnum and channum have to be row vectors
-        begnum = begnum';
-        channum = channum';
-      end
-      artfctmap{i} = [artfctmap{i} false(length(channel), winsize - 1)];    % extend artfctmap to trial size
-      endnum = begnum + winsize - 1;                                        % estimate end numbers for each violation
-      for j=1:1:length(channum)
-        artfctmap{i}(channum(j), begnum(j):endnum(j)) = true;               % extend the violations in the map to the window size
-      end
-      if ~isempty(begnum)
-        begnum = unique(begnum);                                            % select all unique violations
-        begnum = begnum + data_in.sampleinfo(i,1) - 1;                      % convert relative sample number into an absolute one
-        begnum(:,2) = begnum(:,1) + winsize - 1;
-        artifact = [artifact; begnum];                                      %#ok<AGROW> add results to the artifacts matrix
-      end
+      [artfctmap{i}, artifact] = estim_artifact_limits(artfctmap{i}, ...    % add artifact to the artifacts matrix, extend the violations in the map to the window size
+                                    artifact, data_in.sampleinfo(i,1), ...
+                                    channel, winsize);
+    end
+  elseif isfield(cfgT.artfctdef.threshold, 'zero')                          % check for standard deviation violations which indicating dead channels
+    for i=1:1:numOfTrl
+      tmp = movstd(data_in.trial{i}, winsize, 0, 2);                        % estimate a moving standard deviation
+      tmp = prune_mat(tmp, winsize);                                        % remove useless results from the edges
+
+      artfctmap{i} = tmp < cfgT.artfctdef.threshold.zero;                   % find all violations
+      [artfctmap{i}, artifact] = estim_artifact_limits(artfctmap{i}, ...    % add artifact to the artifacts matrix, extend the violations in the map to the window size
+                                    artifact, data_in.sampleinfo(i,1), ...
+                                    channel, winsize);
     end
   elseif isfield(cfgT.artfctdef.threshold, 'mad')                           % check for median absolute deviation violations
     data_continuous = cat(2, data_in.trial{:});                             % concatenate all trials
@@ -289,18 +295,10 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
 
     for i=1:1:numOfTrl
       tmpmin = movmin(data_in.trial{i}, winsize, 2);                        % get all minimum values
-      if mod(winsize, 2)                                                    % remove useless results from the edges
-        tmpmin = tmpmin(:, (winsize/2 + 1):(end-winsize/2));
-      else
-        tmpmin = tmpmin(:, (winsize/2 + 1):(end-winsize/2 + 1));
-      end
+      tmpmin = prune_mat(tmpmin, winsize);                                  % remove useless results from the edges
 
       tmpmax = movmax(data_in.trial{i}, winsize, 2);                        % get all maximum values
-      if mod(winsize, 2)                                                    % remove useless results from the edges
-        tmpmax = tmpmax(:, (winsize/2 + 1):(end-winsize/2));
-      else
-        tmpmax = tmpmax(:, (winsize/2 + 1):(end-winsize/2 + 1));
-      end
+      tmpmin = prune_mat(tmpmin, winsize);                                  % remove useless results from the edges
 
       tmpdiffmax = abs(tmpmax - tmpmedian);                                 % estimate the differences between the maximum values and the median
       tmpdiffmin = abs(tmpmin - tmpmedian);                                 % estimate the differences between the minimum values and the median
@@ -308,22 +306,9 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
       tmp = max(tmp, [], 3);
 
       artfctmap{i} = tmp > cfgT.artfctdef.threshold.mad*tmpmad;             % find all violations
-      [channum, begnum] = find(artfctmap{i});                               % estimate pairs of channel numbers and begin numbers for each violation
-      if size(begnum, 2) > 1                                                % begnum and channum have to be row vectors
-        begnum = begnum';
-        channum = chanum';
-      end
-      artfctmap{i} = [artfctmap{i} false(length(channel), winsize - 1)];    % extend artfctmap to trial size
-      endnum = begnum + winsize - 1;                                        % estimate end numbers for each violation
-      for j=1:1:length(channum)
-        artfctmap{i}(channum(j), begnum(j):endnum(j)) = true;               % extend the violations in the map to the window size
-      end
-      if ~isempty(begnum)
-        begnum = unique(begnum);                                            % select all unique violations
-        begnum = begnum + data_in.sampleinfo(i,1) - 1;                      % convert relative sample number into an absolute one
-        begnum(:,2) = begnum(:,1) + winsize - 1;
-        artifact = [artifact; begnum];                                      %#ok<AGROW>  add results to the artifacts matrix
-      end
+      [artfctmap{i}, artifact] = estim_artifact_limits(artfctmap{i}, ...    % add artifact to the artifacts matrix, extend the violations in the map to the window size
+                                    artifact, data_in.sampleinfo(i,1), ...
+                                    channel, winsize);
     end
   end
 
@@ -333,6 +318,42 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
   autoart.artfctdef.threshold.artfctmap = artfctmap;
   autoart.artfctdef.threshold.sliding   = 'yes';
 
+end
+
+% -------------------------------------------------------------------------
+% SUBFUNCTION which prunes useless results from matrix
+% -------------------------------------------------------------------------
+function [ mat ] = prune_mat(mat, winsize)
+  if mod(winsize, 2)                                                        % remove useless results from the edges
+    mat = mat(:, (winsize/2 + 1):(end-winsize/2));
+  else
+    mat = mat(:, (winsize/2 + 1):(end-winsize/2 + 1));
+  end
+end
+
+% -------------------------------------------------------------------------
+% SUBFUNCTION which is estimating the absolut artifact limits from the
+% given violations and which is extending the artifactmap entry to the
+% trial size
+% -------------------------------------------------------------------------
+function [map, artifact] = estim_artifact_limits(map, artifact, offset,...
+                               channel, winsize)
+  [channum, begnum] = find(map);                                            % estimate pairs of channel numbers and begin numbers for each violation
+  if size(begnum, 2) > 1                                                    % begnum and channum have to be row vectors
+    begnum = begnum';
+    channum = chanum';
+  end
+  map = [map false(length(channel), winsize - 1)];                          % extend artfctmap to trial size
+  endnum = begnum + winsize - 1;                                            % estimate end numbers for each violation
+  for j=1:1:length(channum)
+    map(channum(j), begnum(j):endnum(j)) = true;                            % extend the violations in the map to the window size
+  end
+  if ~isempty(begnum)
+    begnum = unique(begnum);                                                % select all unique violations
+    begnum = begnum + offset - 1;                                           % convert relative sample number into an absolute one
+    begnum(:,2) = begnum(:,1) + winsize - 1;
+    artifact = [artifact; begnum];                                          % add results to the artifacts matrix
+  end
 end
 
 % -------------------------------------------------------------------------
