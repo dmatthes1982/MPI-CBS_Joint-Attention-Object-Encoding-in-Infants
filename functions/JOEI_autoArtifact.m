@@ -37,7 +37,7 @@ function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data, varargin )
 % See also JOEI_GENTRL, JOEI_PREPROCESSING, JOEI_SEGMENTATION, 
 % JOEI_CONCATDATA, FT_ARTIFACT_THRESHOLD
 
-% Copyright (C) 2019, Daniel Matthes, MPI CBS
+% Copyright (C) 2018-2019, Daniel Matthes, MPI CBS
 
 % -------------------------------------------------------------------------
 % Get and check config options
@@ -298,7 +298,7 @@ function [ autoart ] = artifact_sliding_threshold(cfgT, data_in)
       tmpmin = prune_mat(tmpmin, winsize);                                  % remove useless results from the edges
 
       tmpmax = movmax(data_in.trial{i}, winsize, 2);                        % get all maximum values
-      tmpmin = prune_mat(tmpmin, winsize);                                  % remove useless results from the edges
+      tmpmax = prune_mat(tmpmax, winsize);                                  % remove useless results from the edges
 
       tmpdiffmax = abs(tmpmax - tmpmedian);                                 % estimate the differences between the maximum values and the median
       tmpdiffmin = abs(tmpmin - tmpmedian);                                 % estimate the differences between the minimum values and the median

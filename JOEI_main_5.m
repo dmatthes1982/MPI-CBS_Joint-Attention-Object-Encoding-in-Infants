@@ -222,7 +222,7 @@ T = readtable(file_path);                                                   % up
 warning off;
 T.artMethod(numOfPart) = {method};
 T.artThreshold(numOfPart) = threshold;
-T.deadSegs(numOfPart) = {deadSegs};
+T.artDeadSegs(numOfPart) = {deadSegs};
 T.artChan(numOfPart) = channels;
 warning on;
 delete(file_path);
