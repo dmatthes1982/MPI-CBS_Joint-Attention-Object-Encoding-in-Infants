@@ -32,30 +32,54 @@ fprintf('\n');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Calculation of power spectrum using Welch's method (pWelch)
-choise = false;
-while choise == false
+selection = false;                                                          % artifact removal? [y/n]
+while selection == false
   cprintf([0,0.6,0], 'Should rejection of detected artifacts be applied before power estimation?\n');
   x = input('Select [y/n]: ','s');
   if strcmp('y', x)
-    choise = true;
+    selection = true;
     artifactRejection = true;
   elseif strcmp('n', x)
-    choise = true;
+    selection = true;
     artifactRejection = false;
   else
-    choise = false;
+    selection = false;
   end
 end
 fprintf('\n');
 
-selection = false;
+selection = false;                                                          % use of exclusion table? [y/n]
+while selection == false
+  cprintf([0,0.6,0], 'Do you want to consider the exclusion table?\n');
+  y = input('Select [y/n]: ','s');
+  if strcmp('y', y)
+    selection = true;
+    exclusionTable = true;
+  elseif strcmp('n', y)
+    selection = true;
+    exclusionTable = false;
+  else
+    selection = false;
+  end
+end
+
+if exclusionTable == true
+  if ~exist([desPath '00_settings/Ausschluss_overall.txt'], 'file')
+    y = 'n';
+    exclusionTable = false;
+    fprintf('Exclusion table ''Ausschluss_overall.txt'' does not excist. It can''t be considered\n');
+  end
+end
+fprintf('\n');
+
+selection = false;                                                          % selection of pwelch parameter
 while selection == false
   cprintf([0,0.6,0], 'Please select segmentation size for pwelch estimation:\n');
   fprintf('[1] - 1 sec \n');
   fprintf('[2] - 2 sec \n');
-  y = input('Option: ');
+  z = input('Option: ');
 
-  switch y
+  switch z
     case 1
       selection = true;
       seglength = 1;
@@ -76,15 +100,15 @@ while selection == false
   if( seglength == 2 )
     fprintf('[3] - 0.875 %%\n');
   end
-  y = input('Option: ');
+  z = input('Option: ');
 
-  if y == 1
+  if z == 1
     selection = true;
     overlap = 0.5;
-  elseif y == 2
+  elseif z == 2
     selection = true;
     overlap = 0.75;
-  elseif y == 3 && seglength == 2
+  elseif z == 3 && seglength == 2
     selection = true;
     overlap = 0.875;
   else
@@ -107,11 +131,35 @@ end
 T = readtable(file_path);                                                   % update settings table
 warning off;
 T.artRejectPow(numOfPart) = { x };
+T.exclusionTbl(numOfPart) = { y };
 T.powSeglength(numOfPart) = seglength;
 T.powOverlap(numOfPart)   = overlap;
 warning on;
 delete(file_path);
 writetable(T, file_path);
+
+if exclusionTable == true                                                   % Load exclusion table if requested
+  fprintf('<strong>Load exclusion table...</strong>\n\n');
+
+  exclTbl = readtable([desPath '00_settings/Ausschluss_overall.txt']);
+  varNames = exclTbl.Properties.VariableNames;
+  tf = cellfun(@(X) strncmp(X, 'S', 1), varNames, 'UniformOutput', false);
+  tf = cell2mat(tf);
+  varNames = varNames(tf);
+  varNames = cellfun(@(X) strrep(X, 'S', ''), varNames, ...
+                        'UniformOutput', false);
+  varNames = cellfun(@(X) str2double(X), varNames, 'UniformOutput', false);
+  varNames = cell2mat(varNames);
+
+  cData = table2cell(exclTbl);
+  cData = cData(:,tf);
+  cData = cell2mat(cData);
+  cData = ~cData;
+
+  partList = exclTbl.VP(:);
+
+  clear exclTbl tf
+end
 
 for i = numOfPart
   fprintf('<strong>Participant %d</strong>\n\n', i);
@@ -133,6 +181,24 @@ for i = numOfPart
 
   fprintf('Load look event specifications...\n\n');
   JOEI_loadData( cfg );
+
+  % Remove bad trials if exclusion table consideration was selected
+  if exclusionTable == true
+    [~, pos] = ismember(varNames, data_preproc2.trialinfo);
+    [~, col] = ismember(i, partList);
+
+    if col
+      tf = true(1, length(data_preproc2.trialinfo));
+      tf(pos) = cData(col,:);
+
+      data_preproc2.trialinfo   = data_preproc2.trialinfo(tf);
+      data_preproc2.sampleinfo  = data_preproc2.sampleinfo(tf,:);
+      data_preproc2.trial       = data_preproc2.trial(tf);
+      data_preproc2.time        = data_preproc2.time(tf);
+    end
+
+    clear pos col tf
+  end
 
   % Create meta conditions
   cfg           = [];
@@ -240,6 +306,6 @@ for i = numOfPart
 end
 
 %% clear workspace
-clear file_path cfg sourceList numOfSources i choise tfr pwelch T ...
-      artifactRejection artifactAvailable overlap x y numOfAllSeg ...
-      numOfGoodSeg seglength
+clear file_path cfg sourceList numOfSources i selection tfr pwelch T ...
+      artifactRejection artifactAvailable overlap x y z numOfAllSeg ...
+      numOfGoodSeg seglength exclusionTable

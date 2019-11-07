@@ -53,6 +53,14 @@ ft_warning off;
 
 fprintf(['Create data of meta conditions which are related to the '...
           'event %s...\n'], event);
+
+tf = false(1, size(cfg.trl,1));                                             % remove events which are completely not within given trials
+for i = 1:1:size(cfg.trl,1)
+  tf(i) = any(cfg.trl(i,1) <= data.sampleinfo(:,2) & ...
+               cfg.trl(i,2) >= data.sampleinfo(:,1));
+end
+cfg.trl = cfg.trl(tf,:);
+
 data = ft_redefinetrial(cfg, data);
 data = removeNaN( data );
 data.trialinfo = data.trialinfo + markerOffset;
@@ -69,7 +77,7 @@ function [data] = removeNaN( data )
   for i = 1:1:length(data.trial)
     sampleVector = data.sampleinfo(i,1):1:data.sampleinfo(i,2);             % create a sample number vector using sampleinfo
     mask = ~isnan(data.trial{i});                                           % estimate a non NaN mask
-    if ~all(mask(1,:))                                                      % is trial has NaNs
+    if ~all(mask(1,:))                                                      % if trial has NaNs
       trial = data.trial{i}(:, mask(1,:));                                  % prune NaN part from trial
       time  = data.time{i}(mask(1,:));                                      % remove related part from time vector
       sampleVector = sampleVector(mask(1,:));                               % remove related pert from sample vector
