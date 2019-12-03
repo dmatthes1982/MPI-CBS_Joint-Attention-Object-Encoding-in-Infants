@@ -36,7 +36,7 @@ addpath(sprintf('%s/../utilities', filepath));
 
 trialinfo = data.trialinfo;                                                 % get trialinfo
 
-condition = JOEI_checkCondition( condition );                               % check cfg.condition definition    
+condition = JOEI_checkCondition( condition, 'flag', 'meta' );               % check cfg.condition definition
 if isempty(find(trialinfo == condition, 1))
   error('The selected dataset contains no condition %d.', condition);
 else
@@ -55,6 +55,8 @@ end
 if numel(freqlim) == 1
   freqlim = [freqlim freqlim];
 end
+
+data = rmfield(data, {'numOfAllSeg', 'numOfGoodSeg'});                      % remove irrelevant information to avoid misleading warnings
 
 % -------------------------------------------------------------------------
 % Generate topoplot

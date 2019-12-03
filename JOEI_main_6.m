@@ -154,7 +154,7 @@ if exclusionTable == true                                                   % Lo
   cData = table2cell(exclTbl);
   cData = cData(:,tf);
   cData = cell2mat(cData);
-  cData = ~cData;
+  cData = ~cData;                                                           % since it's easier to use 1 for in and 0 for out
 
   partList = exclTbl.VP(:);
 
@@ -184,12 +184,16 @@ for i = numOfPart
 
   % Remove bad trials if exclusion table consideration was selected
   if exclusionTable == true
-    [~, pos] = ismember(varNames, data_preproc2.trialinfo);
     [~, col] = ismember(i, partList);
 
     if col
+      tf = ismember(varNames, data_preproc2.trialinfo);
+      status = cData(col,tf);
+      vars = varNames(tf);
+      [~, pos] = ismember(vars, data_preproc2.trialinfo);
+
       tf = true(1, length(data_preproc2.trialinfo));
-      tf(pos) = cData(col,:);
+      tf(pos) = status;
 
       data_preproc2.trialinfo   = data_preproc2.trialinfo(tf);
       data_preproc2.sampleinfo  = data_preproc2.sampleinfo(tf,:);
@@ -197,23 +201,55 @@ for i = numOfPart
       data_preproc2.time        = data_preproc2.time(tf);
     end
 
-    clear pos col tf
+    clear pos col tf status vars
   end
 
   % Create meta conditions
-  cfg           = [];
-  cfg.event     = 'infObj';
-  cfg.eventSpec = cfg_events;
+  cfg             = [];
+  cfg.event       = 'infObj';
+  cfg.eventSpec   = cfg_events;
+  data_infObj     = JOEI_createMetaCond(cfg, data_preproc2);
 
-  data_infObj   = JOEI_createMetaCond(cfg, data_preproc2);
+  cfg.event       = 'mGaze';
+  data_mGaze      = JOEI_createMetaCond(cfg, data_preproc2);
 
-  cfg.event     = 'mGaze';
+  cfg.event       = 'mObj';
+  data_mObj       = JOEI_createMetaCond(cfg, data_preproc2);
 
-  data_mGaze    = JOEI_createMetaCond(cfg, data_preproc2);
+  filepath = fileparts(mfilename('fullpath'));
+  load(sprintf('%s/general/JOEI_generalDefinitions.mat', filepath), ...
+                'generalDefinitions');
 
-  cfg.event     = 'mObj';
+  cfg               = [];
+  cfg.showcallinfo  = 'no';
+  cfg.trials        = ismember(data_preproc2.trialinfo, ...
+                        generalDefinitions.condNum(1:16));
+  fprintf('Extract data of meta conditions ''AllJA'', ''AllNoJA'' and ''AllBubble''...\n');
+  data_all          = ft_selectdata(cfg, data_preproc2);
 
-  data_mObj     = JOEI_createMetaCond(cfg, data_preproc2);
+  cfg.trials        = ismember(data_infObj.trialinfo, ...
+                        generalDefinitions.metaCondNum(1:12));
+  fprintf('Extract data of meta conditions ''AllJA-infObj'' and ''AllNoJA-infObj''...\n');
+  data_allinfObj    = ft_selectdata(cfg, data_infObj);
+
+  cfg.trials        = ismember(data_mGaze.trialinfo, ...
+                        generalDefinitions.metaCondNum(13:24));
+  fprintf('Extract data of meta conditions ''AllJA-mGaze'' and ''AllNoJA-mGaze''...\n');
+  data_allmGaze     = ft_selectdata(cfg, data_mGaze);
+
+  cfg.trials        = ismember(data_mObj.trialinfo, ...
+                        generalDefinitions.metaCondNum(25:36));
+  fprintf('Extract data of meta conditions ''AllJA-mObj'' and ''AllNoJA-mObj''...\n');
+  data_allmObj      = ft_selectdata(cfg, data_mObj);
+
+  data_all.trialinfo        = data_all.trialinfo - ...
+                              mod(data_all.trialinfo, 10) + 1000;
+  data_allinfObj.trialinfo  = data_allinfObj.trialinfo - ...
+                              mod(data_allinfObj.trialinfo, 10) + 1000;
+  data_allmGaze.trialinfo   = data_allmGaze.trialinfo - ...
+                              mod(data_allmGaze.trialinfo, 10) + 1000;
+  data_allmObj.trialinfo    = data_allmObj.trialinfo - ...
+                              mod(data_allmObj.trialinfo, 10) + 1000;
 
   % Unify datasets
   cfg = [];
@@ -222,10 +258,14 @@ for i = numOfPart
   ft_info off;
   fprintf('Append the meta condition datasets to the initial dataset...\n\n');
   data_preproc2  = ft_appenddata(cfg, data_preproc2, data_infObj, ...
-                                      data_mGaze, data_mObj);
+                                      data_mGaze, data_mObj, data_all, ...
+                                      data_allinfObj, data_allmGaze, ...
+                                      data_allmObj);
   ft_info on;
 
-  clear data_infObj data_mGaze data_mObj cfg_events
+  clear data_infObj data_mGaze data_mObj data_all data_allinfObj ...
+        data_allmGaze data_allmObj cfg_events generalDefinitions ...
+        filepath
 
   % Segmentation of conditions in segments of x seconds with yy percent
   % overlapping
@@ -308,4 +348,4 @@ end
 %% clear workspace
 clear file_path cfg sourceList numOfSources i selection tfr pwelch T ...
       artifactRejection artifactAvailable overlap x y z numOfAllSeg ...
-      numOfGoodSeg seglength exclusionTable
+      numOfGoodSeg seglength exclusionTable cData partList varNames
