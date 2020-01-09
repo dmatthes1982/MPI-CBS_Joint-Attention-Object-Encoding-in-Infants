@@ -181,24 +181,32 @@ fprintf('\n');
 marker  = event(ismember({event(:).type}, 'analysis_gaze'));                % mutual gaze
 mgaze   = marker(ismember({marker(:).value}, 'MutualGaze'));
 
-analysis_gaze.MutualGaze.trl(:,1) = [mgaze(:).sample];
-analysis_gaze.MutualGaze.trl(:,2) = [mgaze(:).sample] + ...
+if ~isempty(mgaze)
+  analysis_gaze.MutualGaze.trl(:,1) = [mgaze(:).sample];
+  analysis_gaze.MutualGaze.trl(:,2) = [mgaze(:).sample] + ...
                                     [mgaze(:).duration] - 1;
-offset = {mgaze(:).offset};
-idx = cellfun(@isempty, offset);
-offset(idx) = {0};
-analysis_gaze.MutualGaze.trl(:,3) = cell2mat(offset);
+  offset = {mgaze(:).offset};
+  idx = cellfun(@isempty, offset);
+  offset(idx) = {0};
+  analysis_gaze.MutualGaze.trl(:,3) = cell2mat(offset);
+else
+  analysis_gaze.MutualGaze.trl = zeros(0,3);
+end
 
 marker  = event(ismember({event(:).type}, 'analysis_gaze'));                % mutual object look
 mobject = marker(ismember({marker(:).value}, 'MutualObject'));
 
-analysis_gaze.MutualObject.trl(:,1) = [mobject(:).sample];
-analysis_gaze.MutualObject.trl(:,2) = [mobject(:).sample] + ...
+if ~isempty(mobject)
+  analysis_gaze.MutualObject.trl(:,1) = [mobject(:).sample];
+  analysis_gaze.MutualObject.trl(:,2) = [mobject(:).sample] + ...
                                     [mobject(:).duration] - 1;
-offset = {mobject(:).offset};
-idx = cellfun(@isempty, offset);
-offset(idx) = {0};
-analysis_gaze.MutualObject.trl(:,3) = cell2mat(offset);
+  offset = {mobject(:).offset};
+  idx = cellfun(@isempty, offset);
+  offset(idx) = {0};
+  analysis_gaze.MutualObject.trl(:,3) = cell2mat(offset);
+else
+  analysis_gaze.MutualObject.trl = zeros(0,3);
+end
 
 cfg_events = [];
 cfg_events.gaze_inf       = gaze_inf;

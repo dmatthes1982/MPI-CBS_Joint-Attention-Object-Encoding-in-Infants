@@ -210,11 +210,15 @@ for i = numOfPart
   cfg.eventSpec   = cfg_events;
   data_infObj     = JOEI_createMetaCond(cfg, data_preproc2);
 
-  cfg.event       = 'mGaze';
-  data_mGaze      = JOEI_createMetaCond(cfg, data_preproc2);
+  if ~isempty(cfg_events.analysis_gaze.MutualGaze.trl)
+    cfg.event       = 'mGaze';
+    data_mGaze      = JOEI_createMetaCond(cfg, data_preproc2);
+  end
 
-  cfg.event       = 'mObj';
-  data_mObj       = JOEI_createMetaCond(cfg, data_preproc2);
+  if ~isempty(cfg_events.analysis_gaze.MutualObject.trl)
+    cfg.event       = 'mObj';
+    data_mObj       = JOEI_createMetaCond(cfg, data_preproc2);
+  end
 
   filepath = fileparts(mfilename('fullpath'));
   load(sprintf('%s/general/JOEI_generalDefinitions.mat', filepath), ...
@@ -232,24 +236,32 @@ for i = numOfPart
   fprintf('Extract data of meta conditions ''AllJA-infObj'' and ''AllNoJA-infObj''...\n');
   data_allinfObj    = ft_selectdata(cfg, data_infObj);
 
-  cfg.trials        = ismember(data_mGaze.trialinfo, ...
-                        generalDefinitions.metaCondNum(13:24));
-  fprintf('Extract data of meta conditions ''AllJA-mGaze'' and ''AllNoJA-mGaze''...\n');
-  data_allmGaze     = ft_selectdata(cfg, data_mGaze);
+  if exist('data_mGaze', 'var')
+    cfg.trials        = ismember(data_mGaze.trialinfo, ...
+                          generalDefinitions.metaCondNum(13:24));
+    fprintf('Extract data of meta conditions ''AllJA-mGaze'' and ''AllNoJA-mGaze''...\n');
+    data_allmGaze     = ft_selectdata(cfg, data_mGaze);
+  end
 
-  cfg.trials        = ismember(data_mObj.trialinfo, ...
-                        generalDefinitions.metaCondNum(25:36));
-  fprintf('Extract data of meta conditions ''AllJA-mObj'' and ''AllNoJA-mObj''...\n');
-  data_allmObj      = ft_selectdata(cfg, data_mObj);
+  if exist('data_mObj', 'var')
+    cfg.trials        = ismember(data_mObj.trialinfo, ...
+                          generalDefinitions.metaCondNum(25:36));
+    fprintf('Extract data of meta conditions ''AllJA-mObj'' and ''AllNoJA-mObj''...\n');
+    data_allmObj      = ft_selectdata(cfg, data_mObj);
+  end
 
   data_all.trialinfo        = data_all.trialinfo - ...
                               mod(data_all.trialinfo, 10) + 1000;
   data_allinfObj.trialinfo  = data_allinfObj.trialinfo - ...
                               mod(data_allinfObj.trialinfo, 10) + 1000;
-  data_allmGaze.trialinfo   = data_allmGaze.trialinfo - ...
-                              mod(data_allmGaze.trialinfo, 10) + 1000;
-  data_allmObj.trialinfo    = data_allmObj.trialinfo - ...
-                              mod(data_allmObj.trialinfo, 10) + 1000;
+  if exist('data_mGaze', 'var')
+    data_allmGaze.trialinfo   = data_allmGaze.trialinfo - ...
+                                mod(data_allmGaze.trialinfo, 10) + 1000;
+  end
+  if exist('data_mObj', 'var')
+    data_allmObj.trialinfo    = data_allmObj.trialinfo - ...
+                                mod(data_allmObj.trialinfo, 10) + 1000;
+  end
 
   % Unify datasets
   cfg = [];
@@ -257,10 +269,23 @@ for i = numOfPart
 
   ft_info off;
   fprintf('Append the meta condition datasets to the initial dataset...\n\n');
-  data_preproc2  = ft_appenddata(cfg, data_preproc2, data_infObj, ...
+  if exist('data_mGaze', 'var') && exist('data_mObj', 'var')
+    data_preproc2  = ft_appenddata(cfg, data_preproc2, data_infObj, ...
                                       data_mGaze, data_mObj, data_all, ...
                                       data_allinfObj, data_allmGaze, ...
                                       data_allmObj);
+  elseif exist('data_mGaze', 'var')
+    data_preproc2  = ft_appenddata(cfg, data_preproc2, data_infObj, ...
+                                      data_mGaze, data_all, ...
+                                      data_allinfObj, data_allmGaze);
+  elseif exist('data_mObj', 'var')
+    data_preproc2  = ft_appenddata(cfg, data_preproc2, data_infObj, ...
+                                      data_mObj, data_all, ...
+                                      data_allinfObj, data_allmObj);
+  else
+    data_preproc2  = ft_appenddata(cfg, data_preproc2, data_infObj, ...
+                                      data_all, data_allinfObj);
+  end
   ft_info on;
 
   clear data_infObj data_mGaze data_mObj data_all data_allinfObj ...
