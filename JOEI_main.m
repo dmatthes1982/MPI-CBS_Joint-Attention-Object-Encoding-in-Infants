@@ -419,8 +419,12 @@ while sessionStatus == true
         fprintf('<strong>Continue data processing with:</strong>\n');
         fprintf('<strong>[3] - ICA decomposition?</strong>\n');
         fprintf('<strong>[4] - Preproc II: ICA based data correction, bad channel recovery, re-referencing?</strong>\n');
+        fprintf('<strong>[0] - Quit data processing?</strong>\n');
         x = input('\nSelect one of these options: ');
         switch x
+          case 0
+            selection = true;
+            sessionStatus = false;
           case 3
             selection = true;
             sessionStatus = true;

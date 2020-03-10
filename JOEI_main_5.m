@@ -244,7 +244,15 @@ for i = numOfPart
     cfg.filename    = sprintf('JOEI_p%02d_01a_raw', i);
     cfg.sessionStr  = sessionStr;
 
-    fprintf('Load raw data...\n\n');
+    fprintf('Load raw data...\n');
+    JOEI_loadData( cfg );
+
+    cfg             = [];
+    cfg.srcFolder   = strcat(desPath, '02a_badchan/');
+    cfg.filename    = sprintf('JOEI_p%02d_02a_badchan', i);
+    cfg.sessionStr  = sessionStr;
+
+    fprintf('Load bad channels specification...\n\n');
     JOEI_loadData( cfg );
   else
     fprintf('\n');
@@ -256,6 +264,7 @@ for i = numOfPart
   cfg.method      = method;                                                 % artifact detection method
   if strcmp(deadSegs, 'y')
     cfg.deadsegs   = 'yes';                                                 % detection of segments in which at least one channel is dead or in saturation
+    cfg.badchan    = data_badchan.badChan;
   end
   cfg.sliding     = sliding;                                                % use sliding window or not
   cfg.winsize     = winsize;                                                % size of sliding window
@@ -318,7 +327,7 @@ for i = numOfPart
   fprintf('%s ...\n', file_path);
   JOEI_saveData(cfg, 'cfg_autoart', cfg_autoart);
   fprintf('Data stored!\n');
-  clear cfg_autoart data_preproc2 data_raw trl
+  clear cfg_autoart data_preproc2 data_raw data_badchan trl
   
   % export the verified and the additional artifacts into a *.mat file
   cfg             = [];

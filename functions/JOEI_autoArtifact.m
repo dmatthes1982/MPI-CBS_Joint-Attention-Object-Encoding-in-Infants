@@ -12,8 +12,10 @@ function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data, varargin )
 % The configuration options are
 %   cfg.channel     = cell-array with channel labels (default: {'Cz', 'O1', 'O2'}))
 %   cfg.method      = 'minmax', 'range', 'stddev' or 'mad' (default: 'minmax')
-%   cfg.deadsegs   = 'yes' or 'no', estimating segments in which at least one channel is dead or in saturation
+%   cfg.deadsegs    = 'yes' or 'no', estimating segments in which at least one channel is dead or in saturation
 %                     if cfg.deathsegs = yes, varargin has to be data_raw
+%   cfg.badchan     = vector of channels which were marked as bad and repaired during preprocessing,
+%                     theses channels will be excluded from the dead segments detection.
 %   cfg.sliding     = use a sliding window, 'yes' or 'no', (default: 'no')
 %   cfg.winsize     = size of sliding window (default: 200 ms)
 %                     only required if cfg.sliding = 'yes'
@@ -37,7 +39,7 @@ function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data, varargin )
 % See also JOEI_GENTRL, JOEI_PREPROCESSING, JOEI_SEGMENTATION, 
 % JOEI_CONCATDATA, FT_ARTIFACT_THRESHOLD
 
-% Copyright (C) 2018-2019, Daniel Matthes, MPI CBS
+% Copyright (C) 2018-2020, Daniel Matthes, MPI CBS
 
 % -------------------------------------------------------------------------
 % Get and check config options
@@ -45,6 +47,7 @@ function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data, varargin )
 chan        = ft_getopt(cfg, 'channel', {'Cz', 'O1', 'O2'});                % channels to test
 method      = ft_getopt(cfg, 'method', 'minmax');                           % artifact detection method
 deadsegs    = ft_getopt(cfg, 'deadsegs', 'no');                            	% estimating segments in which at least one channel is dead or in saturation
+badchan     = ft_getopt(cfg, 'badchan', []);                                % set of channels which should be excluded from the bad channel detection
 sliding     = ft_getopt(cfg, 'sliding', 'no');                              % use a sliding window
 
 if ~(strcmp(sliding, 'no') || strcmp(sliding, 'yes'))                       % validate cfg.sliding
@@ -157,11 +160,27 @@ cfgAutoArt = artifact_detect(cfg, data);
 cfgAutoArt = keepfields(cfgAutoArt, {'artfctdef', 'showcallinfo'});
 
 if strcmp(deadsegs, 'yes')
+  if (isempty(badchan))                                                     % determine the channels of interest
+    chanOfInterest = chan;                                                  % remove corrected channels
+  else
+    if ischar(chan)
+      chanOfInterest = {chan};
+    else
+      chanOfInterest = chan;
+    end
+    tf = contains(chanOfInterest, badchan);
+    chanOfInterest = chanOfInterest(~tf);
+    if find(contains(chanOfInterest, 'all'))
+      tmp = cellfun(@(X) ['-' X], badchan, 'UniformOutput', false);
+      chanOfInterest = [chanOfInterest tmp'];
+    end
+  end
+
   fprintf('<strong>Run detection of segments in which at least one channel is dead or in saturation...</strong>\n');
   cfg2 = [];
   cfg2.method                        = 'zero';
   cfg2.sliding                       = 'yes';
-  cfg2.artfctdef.threshold.channel   = chan;                                % specify channels of interest
+  cfg2.artfctdef.threshold.channel   = chanOfInterest;                      % set channels of interest
   cfg2.artfctdef.threshold.bpfilter  = 'no';                                % use no additional bandpass
   cfg2.artfctdef.threshold.bpfreq    = [];                                  % use no additional bandpass
   cfg2.artfctdef.threshold.onset     = [];                                  % just defined to get a similar output from ft_artifact_threshold and artifact_threshold
@@ -171,7 +190,23 @@ if strcmp(deadsegs, 'yes')
   cfg2.artfctdef.threshold.trl       = trl;
   cfg2.showcallinfo                  = 'no';
 
-  cfgDeadSeg = artifact_detect(cfg2, data_raw);
+  cfgDeadSeg = artifact_detect(cfg2, data_raw);                             % find dead segment artifacts
+  if ~isempty(badchan)                                                      % adjust matrix size to auto artifact map
+    tmpmap = cfgDeadSeg.artfctdef.threshold.artfctmap;
+
+    pos = find(contains(cfgAutoArt.artfctdef.threshold.channel, ...
+                          badchan)) - 1;
+    pos = sort(pos);
+
+    for i=1:1:length(pos)
+      tmpmap = cellfun(@(X) ...
+                [X(1:pos(i),:); zeros(1, size(X,2)); X(pos(i)+1:end,:)], ...
+                tmpmap, 'UniformOutput', false);
+    end
+
+    cfgDeadSeg.artfctdef.threshold.artfctmap = tmpmap;
+  end
+
   cfgAutoArt.artfctdef.threshold.artfctmap = cellfun(@(X,Y) or(X,Y), ...    % merge artifact maps
         cfgAutoArt.artfctdef.threshold.artfctmap, ...
         cfgDeadSeg.artfctdef.threshold.artfctmap, 'UniformOutput', false);
