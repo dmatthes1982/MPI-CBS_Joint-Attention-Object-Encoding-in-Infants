@@ -44,7 +44,7 @@ else
 end
 
 if ~isempty(baseline)
-  baseline    = JOEI_checkCondition( baseline );                            % check cfg.baseline definition
+  baseline    = JOEI_checkCondition( baseline, 'flag', 'meta' );            % check cfg.baseline definition
   if isempty(find(trialinfo == baseline, 1))
     error('The selected dataset contains no condition %d.', baseline);
   else
@@ -56,7 +56,15 @@ if numel(freqlim) == 1
   freqlim = [freqlim freqlim];
 end
 
-data = rmfield(data, {'numOfAllSeg', 'numOfGoodSeg'});                      % remove irrelevant information to avoid misleading warnings
+if isfield(data, 'numOfAllSeg')
+    data = rmfield(data, 'numOfAllSeg');                                    % remove irrelevant information to avoid misleading warnings
+end
+if isfield(data, 'numOfGoodSeg')
+    data = rmfield(data, 'numOfGoodSeg');
+end
+if isfield(data, 'parts')
+    data = rmfield(data, 'parts');
+end
 
 % -------------------------------------------------------------------------
 % Generate topoplot
@@ -64,7 +72,7 @@ data = rmfield(data, {'numOfAllSeg', 'numOfGoodSeg'});                      % re
 load(sprintf('%s/../layouts/mpi_customized_acticap32.mat', filepath), 'lay');
 
 if strcmp(showeogv, 'no')
-  tf = ~ismember(lay.label, {'V1','V2'});                                   %#ok<NODEF>
+  tf = ~ismember(lay.label, {'V1','V2'});
   lay.pos     = lay.pos(tf,:);
   lay.label   = lay.label(tf);
   lay.width   = lay.width(tf);

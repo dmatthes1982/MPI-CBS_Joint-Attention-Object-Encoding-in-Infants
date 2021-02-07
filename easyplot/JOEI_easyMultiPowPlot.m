@@ -42,7 +42,7 @@ else
 end
 
 if ~isempty(cfg.baseline)
-  cfg.baseline    = JOEI_checkCondition( cfg.baseline );                    % check cfg.baseline definition
+  cfg.baseline    = JOEI_checkCondition( cfg.baseline, 'flag', 'meta' );                    % check cfg.baseline definition
   if isempty(find(trialinfo == cfg.baseline, 1))
     error('The selected dataset contains no condition %d.', cfg.baseline);
   else
