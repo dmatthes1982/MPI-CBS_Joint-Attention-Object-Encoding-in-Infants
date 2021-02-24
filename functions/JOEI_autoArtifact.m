@@ -13,7 +13,7 @@ function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data, varargin )
 %   cfg.channel     = cell-array with channel labels (default: {'Cz', 'O1', 'O2'}))
 %   cfg.method      = 'minmax', 'range', 'stddev' or 'mad' (default: 'minmax')
 %   cfg.deadsegs    = 'yes' or 'no', estimating segments in which at least one channel is dead or in saturation
-%                     if cfg.deathsegs = yes, varargin has to be data_raw
+%                     if cfg.deathsegs = 'yes', varargin has to be data_raw
 %   cfg.badchan     = vector of channels which were marked as bad and repaired during preprocessing,
 %                     theses channels will be excluded from the dead segments detection.
 %   cfg.sliding     = use a sliding window, 'yes' or 'no', (default: 'no')
@@ -39,7 +39,7 @@ function [ cfgAutoArt ] = JOEI_autoArtifact( cfg, data, varargin )
 % See also JOEI_GENTRL, JOEI_PREPROCESSING, JOEI_SEGMENTATION, 
 % JOEI_CONCATDATA, FT_ARTIFACT_THRESHOLD
 
-% Copyright (C) 2018-2020, Daniel Matthes, MPI CBS
+% Copyright (C) 2018-2021, Daniel Matthes, MPI CBS
 
 % -------------------------------------------------------------------------
 % Get and check config options
@@ -49,6 +49,8 @@ method      = ft_getopt(cfg, 'method', 'minmax');                           % ar
 deadsegs    = ft_getopt(cfg, 'deadsegs', 'no');                            	% estimating segments in which at least one channel is dead or in saturation
 badchan     = ft_getopt(cfg, 'badchan', []);                                % set of channels which should be excluded from the bad channel detection
 sliding     = ft_getopt(cfg, 'sliding', 'no');                              % use a sliding window
+
+chan = ft_channelselection(chan, data.label);                               % transform channel of interest specification in a processable form
 
 if ~(strcmp(sliding, 'no') || strcmp(sliding, 'yes'))                       % validate cfg.sliding
   error('Sliding has to be either ''yes'' or ''no''!');
